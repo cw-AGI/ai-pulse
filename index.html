@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIPulse · AI 情报落地页</title>
+<style>
+  :root{
+    --bg:#0e1116;--panel:#161b22;--panel-2:#1c232c;--border:#262d38;--border-soft:#1f2630;
+    --text:#e6edf3;--muted:#8b949e;--accent:#4493f8;--accent-soft:rgba(68,147,248,.14);--cyan:#39d3c3;
+    --hn:#ff7a18;--gh:#c9d1d9;--hf:#ffcc4d;--dev:#cbd5e1;--job:#5bd66f;
+    --radius:11px;--shadow:0 8px 30px rgba(0,0,0,.5);
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;-webkit-font-smoothing:antialiased}
+  body{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+
+  .topbar{flex:none;display:flex;align-items:center;gap:9px;padding:11px 14px;background:var(--panel);border-bottom:1px solid var(--border);flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:9px;font-weight:700;white-space:nowrap}
+  .brand .dot{width:11px;height:11px;border-radius:50%;background:var(--cyan);box-shadow:0 0 12px var(--cyan);animation:p 2s infinite}
+  @keyframes p{0%,100%{opacity:.5}50%{opacity:1}}
+  .brand small{color:var(--muted);font-weight:400;font-family:var(--mono);font-size:11px}
+  .search{flex:1;min-width:140px;display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:0 11px;height:38px}
+  .search svg{width:16px;height:16px;stroke:var(--muted);fill:none;stroke-width:2;flex:none}
+  .search input{flex:1;background:none;border:none;color:var(--text);font-size:14px;outline:none;font-family:var(--sans)}
+  select,.btn{height:38px;border-radius:9px;border:1px solid var(--border);background:var(--panel-2);color:var(--text);font-size:13px;cursor:pointer;outline:none}
+  select{padding:0 9px}
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:0 13px;white-space:nowrap;transition:.13s;flex:none}
+  .btn:hover{background:#222a35;border-color:#323b48}
+  .btn:active{transform:translateY(1px)}
+  .btn.icon{width:38px;padding:0;justify-content:center}
+  .btn.accent{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  .btn.accent:hover{background:#5aa0fa}
+  .btn.on{background:var(--accent-soft);border-color:rgba(68,147,248,.5);color:var(--accent)}
+  .btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+  .board{flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:0;overflow:hidden}
+  .col{display:flex;flex-direction:column;border-right:1px solid var(--border);overflow:hidden;min-width:0}
+  .col:last-child{border-right:none}
+  .col-h{flex:none;display:flex;align-items:center;gap:9px;padding:13px 15px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,var(--panel),rgba(22,27,34,0))}
+  .col-h .ic{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;flex:none}
+  .col-h .ic svg{width:17px;height:17px;stroke:#fff;fill:none;stroke-width:1.9}
+  .col-h .ti{flex:1;min-width:0}
+  .col-h .ti b{display:block;font-size:14.5px}
+  .col-h .ti span{font-size:11px;color:var(--muted);font-family:var(--mono)}
+  .col-h .rf{width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--muted);cursor:pointer;display:grid;place-items:center}
+  .col-h .rf:hover{color:var(--text);background:var(--panel-2)}
+  .col-h .rf svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}
+  .col-h .rf.spin svg{animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .col-body{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:9px;scrollbar-width:thin}
+  .col-body::-webkit-scrollbar{width:8px}.col-body::-webkit-scrollbar-thumb{background:#2a323d;border-radius:4px}
+
+  .card{display:block;text-decoration:none;color:inherit;background:var(--panel);border:1px solid var(--border-soft);border-radius:10px;padding:12px 13px;transition:.13s}
+  .card:hover{border-color:#37414e;background:var(--panel-2);transform:translateY(-1px)}
+  .card-top{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+  .src{font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;letter-spacing:.4px;font-family:var(--mono)}
+  .src.hn{background:rgba(255,122,24,.16);color:var(--hn)} .src.gh{background:rgba(201,209,217,.12);color:var(--gh)}
+  .src.hf{background:rgba(255,204,77,.16);color:var(--hf)} .src.dev{background:rgba(203,213,225,.12);color:var(--dev)}
+  .src.arxiv{background:rgba(178,24,43,.18);color:#ff8090} .src.job{background:rgba(91,214,111,.16);color:var(--job)}
+  .ago{margin-left:auto;font-size:11px;color:var(--muted);font-family:var(--mono);white-space:nowrap}
+  .card-title{font-size:13.5px;line-height:1.45;font-weight:600;color:#eef2f7}
+  .card-snip{font-size:12.5px;line-height:1.55;color:#aeb6c0;margin-top:6px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .card-meta{display:flex;gap:12px;margin-top:9px;font-size:11px;color:var(--muted);font-family:var(--mono);flex-wrap:wrap}
+  .card-meta span{display:inline-flex;align-items:center;gap:4px}
+  .col-state{padding:30px 16px;text-align:center;color:var(--muted);font-size:13px;line-height:1.7}
+  .col-state.err{color:#ff8a8a}
+  .skel{height:70px;border-radius:10px;background:linear-gradient(90deg,#161b22,#1d242e,#161b22);background-size:200% 100%;animation:sh 1.3s infinite}
+  @keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+  .modal{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;background:rgba(5,7,10,.65);backdrop-filter:blur(3px);padding:20px}
+  .modal.show{display:flex}
+  .modal-card{width:min(480px,94vw);background:var(--panel);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);padding:20px 22px}
+  .modal-card h3{margin:0 0 14px;font-size:16px}
+  .fld{margin-bottom:14px}
+  .fld label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+  .fld input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:9px 11px;font-size:13px;outline:none;font-family:var(--sans)}
+  .fld input:focus{border-color:var(--accent)}
+  .fld .tog{display:flex;align-items:center;justify-content:space-between}
+  .toggle{display:inline-flex;align-items:center;gap:8px;cursor:pointer}
+  .toggle .sw{width:34px;height:19px;border-radius:10px;background:var(--border);position:relative;transition:.15s}
+  .toggle .sw::after{content:"";position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:50%;background:#fff;transition:.15s}
+  .toggle.on .sw{background:var(--accent)}.toggle.on .sw::after{left:17px}
+  .hintsm{font-size:11px;color:var(--muted);line-height:1.6;margin-top:5px}
+  .modal-foot{display:flex;justify-content:flex-end;gap:9px;margin-top:8px}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--panel-2);border:1px solid var(--border);padding:10px 18px;border-radius:9px;font-size:13px;opacity:0;transition:.3s;z-index:60;box-shadow:var(--shadow);max-width:90vw;text-align:center}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  @media (max-width:860px){
+    body{overflow:auto;height:auto;min-height:100vh}
+    .board{grid-template-columns:1fr;overflow:visible}
+    .col{border-right:none;border-bottom:1px solid var(--border)}
+    .col-body{max-height:none}
+    .btn span.lbl{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand"><span class="dot"></span>AIPulse <small>v1.1</small></div>
+  <div class="search">
+    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input id="kw" placeholder="关键词，如 AI / LLM / agent / RAG…" value="AI" autocomplete="off">
+  </div>
+  <select id="range">
+    <option value="today" data-i18n="rToday">今天</option>
+    <option value="week" selected data-i18n="rWeek">本周</option>
+    <option value="month" data-i18n="rMonth">本月</option>
+    <option value="all" data-i18n="rAll">全部</option>
+  </select>
+  <button class="btn accent" id="refreshAll"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg><span class="lbl" data-i18n="refresh">刷新</span></button>
+  <button class="btn icon on" id="autoBtn" data-i18n-tt="autoTip" title="自动刷新"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg></button>
+  <button class="btn icon" id="setBtn" data-i18n-tt="setTip" title="设置"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-2.82 1.17V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15H4.5a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 6 9.4l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 11 6.6V4.5a2 2 0 1 1 4 0v.09A1.65 1.65 0 0 0 18 6.6l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 11h.1a2 2 0 1 1 0 4z"/></svg></button>
+  <button class="btn" id="langBtn">EN</button>
+</div>
+
+<div class="board">
+  <div class="col">
+    <div class="col-h"><span class="ic" style="background:#7c4dff"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
+      <div class="ti"><b data-i18n="cNews">AI 前沿</b><span id="news-meta">—</span></div>
+      <button class="rf" data-col="news"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button></div>
+    <div class="col-body" id="news-body"></div>
+  </div>
+  <div class="col">
+    <div class="col-h"><span class="ic" style="background:#1f9b6b"><svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span>
+      <div class="ti"><b data-i18n="cTech">技术栈</b><span id="tech-meta">—</span></div>
+      <button class="rf" data-col="tech"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button></div>
+    <div class="col-body" id="tech-body"></div>
+  </div>
+  <div class="col">
+    <div class="col-h"><span class="ic" style="background:#c9762f"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></span>
+      <div class="ti"><b data-i18n="cJobs">招聘岗位</b><span id="jobs-meta">—</span></div>
+      <button class="rf" data-col="jobs"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button></div>
+    <div class="col-body" id="jobs-body"></div>
+  </div>
+</div>
+
+<div class="modal" id="setModal">
+  <div class="modal-card">
+    <h3 data-i18n="setTitle">设置</h3>
+    <div class="fld"><div class="tog"><label class="toggle" id="liveToggle"><span class="sw"></span><span data-i18n="liveLbl">强制实时抓取（忽略 data.json）</span></label></div>
+      <div class="hintsm" data-i18n="liveHint">关闭时优先读取每天由 GitHub Actions 生成的同源 data.json；找不到才用浏览器直连。</div></div>
+    <div class="fld"><div class="tog"><label class="toggle" id="arxivToggle"><span class="sw"></span><span data-i18n="arxivLbl">启用 arXiv 论文源（前沿栏）</span></label></div>
+      <div class="hintsm" data-i18n="arxivHint">arXiv 不支持跨域，需经公共代理，可能较慢或偶尔失败。</div></div>
+    <div class="fld"><label data-i18n="proxyLbl">CORS 代理地址（用于 arXiv）</label>
+      <input id="proxyUrl" value="https://api.allorigins.win/raw?url=" placeholder="https://…/?url=">
+      <div class="hintsm" data-i18n="proxyHint">代理会拼在目标 URL 前。生产环境建议改用 GitHub Actions 定时抓取写入同源 data.json。</div></div>
+    <div class="modal-foot"><button class="btn" id="setClose" data-i18n="close">关闭</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ============================================================
+   AIPulse v1.0 — AI 前沿 / 技术栈 / 招聘 实时聚合落地页
+   数据源(均浏览器可直连/免key)：Hacker News(Algolia)、GitHub、Hugging Face、dev.to
+   可选：arXiv(经 CORS 代理)。本地缓存离线可看上次结果。中英文切换。
+   ============================================================ */
+const LANG_KEY="aipulse_lang", CFG_KEY="aipulse_cfg", CACHE_KEY="aipulse_cache_v1";
+const I18N={
+ zh:{rToday:"今天",rWeek:"本周",rMonth:"本月",rAll:"全部",refresh:"刷新",autoTip:"自动刷新(5分钟)",setTip:"设置",
+   cNews:"AI 前沿",cTech:"技术栈",cJobs:"招聘岗位",setTitle:"设置",
+   arxivLbl:"启用 arXiv 论文源（前沿栏）",arxivHint:"arXiv 不支持跨域，需经公共代理，可能较慢或偶尔失败。",
+   proxyLbl:"CORS 代理地址（用于 arXiv）",proxyHint:"代理会拼在目标 URL 前。生产环境建议改用 GitHub Actions 定时抓取写入同源 data.json。",
+   close:"关闭",loading:"加载中…",empty:"暂无结果，换个关键词或时间范围",error:"加载失败（可能被限流/跨域），显示上次缓存",
+   updated:"更新于",pts:"赞",cmt:"评论",star:"星",likes:"喜欢",dl:"下载",view:"查看职位",refreshed:"已刷新",jobsHint:"来自 HN 每月「Who is hiring」帖，按关键词筛选",
+   daily:"每日快照",liveLbl:"强制实时抓取（忽略 data.json）",liveHint:"关闭时优先读取每天由 GitHub Actions 生成的同源 data.json；找不到才用浏览器直连。"},
+ en:{rToday:"Today",rWeek:"This week",rMonth:"This month",rAll:"All",refresh:"Refresh",autoTip:"Auto refresh (5 min)",setTip:"Settings",
+   cNews:"AI Frontier",cTech:"Tech Stack",cJobs:"Jobs",setTitle:"Settings",
+   arxivLbl:"Enable arXiv papers (Frontier)",arxivHint:"arXiv has no CORS; routed via a public proxy, may be slow or fail occasionally.",
+   proxyLbl:"CORS proxy URL (for arXiv)",proxyHint:"Prepended to the target URL. For production prefer a GitHub Actions cron writing a same-origin data.json.",
+   close:"Close",loading:"Loading…",empty:"No results — try another keyword or range",error:"Failed (rate-limited/CORS); showing cached",
+   updated:"Updated",pts:"pts",cmt:"comments",star:"stars",likes:"likes",dl:"downloads",view:"View job",refreshed:"Refreshed",jobsHint:"From HN monthly “Who is hiring”, filtered by keyword",
+   daily:"Daily snapshot",liveLbl:"Force live fetch (ignore data.json)",liveHint:"When off, prefers the same-origin data.json built daily by GitHub Actions; falls back to browser fetch if absent."}
+};
+let lang=localStorage.getItem(LANG_KEY)||"zh";
+const t=k=>(I18N[lang][k]!=null?I18N[lang][k]:k);
+const cfg=Object.assign({arxiv:false,proxy:"https://api.allorigins.win/raw?url=",auto:true,forceLive:false},loadJSON(CFG_KEY,{}));
+const cache=loadJSON(CACHE_KEY,{});
+let snapshot=null, snapMode=false;   // 每日快照 data.json
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function loadJSON(k,d){ try{ return JSON.parse(localStorage.getItem(k))||d; }catch(e){ return d; } }
+function saveJSON(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+let toastTimer; function toast(m){ const e=$("#toast"); e.textContent=m; e.classList.add("show"); clearTimeout(toastTimer); toastTimer=setTimeout(()=>e.classList.remove("show"),2000); }
+
+function timeAgo(ms){ const s=Math.max(0,(Date.now()-ms)/1000);
+  const zh=lang==="zh";
+  if(s<60) return zh?"刚刚":"now";
+  const m=s/60; if(m<60) return Math.floor(m)+(zh?" 分钟前":"m");
+  const h=m/60; if(h<24) return Math.floor(h)+(zh?" 小时前":"h");
+  const d=h/24; if(d<30) return Math.floor(d)+(zh?" 天前":"d");
+  return Math.floor(d/30)+(zh?" 个月前":"mo"); }
+function htmlToText(h){ const d=document.createElement("div"); d.innerHTML=h||""; return (d.textContent||"").replace(/\s+/g," ").trim(); }
+function sinceDate(r){ const d=new Date(); if(r==="today")d.setDate(d.getDate()-1); else if(r==="week")d.setDate(d.getDate()-7); else if(r==="month")d.setMonth(d.getMonth()-1); else return null; return d.toISOString().slice(0,10); }
+function sinceTs(r){ const dt=sinceDate(r); return dt?Math.floor(new Date(dt).getTime()/1000):0; }
+
+// ---------- 数据源 ----------
+async function jget(url){ const r=await fetch(url,{headers:{"Accept":"application/json"}}); if(!r.ok)throw new Error(r.status); return r.json(); }
+
+async function fetchNews(kw,range){
+  const since=sinceTs(range), items=[];
+  // Hacker News 故事
+  const hn=await jget(`https://hn.algolia.com/api/v1/search_by_date?query=${encodeURIComponent(kw)}&tags=story&numericFilters=created_at_i>${since}&hitsPerPage=30`);
+  (hn.hits||[]).forEach(h=>{ if(!h.title)return; items.push({src:"hn",title:h.title,url:h.url||`https://news.ycombinator.com/item?id=${h.objectID}`,
+    time:h.created_at_i*1000, meta:[["pts",h.points||0],["cmt",h.num_comments||0]]}); });
+  // dev.to AI 文章
+  try{ const top=range==="today"?1:range==="week"?7:range==="month"?30:90;
+    const dv=await jget(`https://dev.to/api/articles?tag=${encodeURIComponent(devTag(kw))}&per_page=12&top=${top}`);
+    (dv||[]).forEach(a=>items.push({src:"dev",title:a.title,url:a.url,time:new Date(a.published_at).getTime(),
+      meta:[["likes",a.positive_reactions_count||0],["cmt",a.comments_count||0]]})); }catch(e){}
+  // arXiv（可选，经代理）
+  if(cfg.arxiv){ try{
+    const q=`http://export.arxiv.org/api/query?search_query=${encodeURIComponent("all:"+kw)}+AND+cat:cs.AI&sortBy=submittedDate&sortOrder=descending&max_results=12`;
+    const xmlText=await (await fetch(cfg.proxy+encodeURIComponent(q))).text();
+    const xml=new DOMParser().parseFromString(xmlText,"text/xml");
+    [...xml.querySelectorAll("entry")].forEach(en=>{ const ti=en.querySelector("title")?.textContent?.trim();
+      const link=en.querySelector("id")?.textContent?.trim(); const pub=en.querySelector("published")?.textContent;
+      if(ti) items.push({src:"arxiv",title:ti,url:link,time:new Date(pub).getTime(),snippet:htmlToText(en.querySelector("summary")?.textContent).slice(0,200),meta:[]}); });
+  }catch(e){} }
+  return items.sort((a,b)=>b.time-a.time);
+}
+function devTag(kw){ const k=kw.toLowerCase(); if(/ml|machine/.test(k))return "machinelearning"; if(/llm|gpt|agent|rag/.test(k))return "ai"; return "ai"; }
+
+async function fetchTech(kw,range){
+  const items=[]; const since=sinceDate(range);
+  // GitHub 热门仓库
+  let q=`${kw} stars:>30`; if(since)q+=` pushed:>${since}`;
+  const gh=await jget(`https://api.github.com/search/repositories?q=${encodeURIComponent(q)}&sort=stars&order=desc&per_page=24`);
+  (gh.items||[]).forEach(r=>items.push({src:"gh",title:r.full_name,url:r.html_url,time:new Date(r.pushed_at).getTime(),
+    snippet:r.description||"", meta:[["star",r.stargazers_count],[null,r.language||""]]}));
+  // Hugging Face 模型
+  try{ const hf=await jget(`https://huggingface.co/api/models?search=${encodeURIComponent(kw)}&sort=likes&direction=-1&limit=14`);
+    (hf||[]).forEach(m=>items.push({src:"hf",title:m.id||m.modelId,url:`https://huggingface.co/${m.id||m.modelId}`,
+      time:m.lastModified?new Date(m.lastModified).getTime():Date.now(), meta:[["likes",m.likes||0],["dl",fmtNum(m.downloads||0)]]})); }catch(e){}
+  return items;
+}
+function fmtNum(n){ return n>=1e6?(n/1e6).toFixed(1)+"M":n>=1e3?(n/1e3).toFixed(1)+"k":""+n; }
+
+let hiringThread=null;
+async function fetchJobs(kw){
+  // 找到最新的 "Ask HN: Who is hiring?" 帖子
+  if(!hiringThread){ const s=await jget(`https://hn.algolia.com/api/v1/search?query=${encodeURIComponent("Ask HN: Who is hiring")}&tags=story&hitsPerPage=5`);
+    const hit=(s.hits||[]).filter(h=>/who is hiring/i.test(h.title||"")).sort((a,b)=>b.created_at_i-a.created_at_i)[0];
+    if(hit)hiringThread=hit.objectID; }
+  if(!hiringThread) return [];
+  const c=await jget(`https://hn.algolia.com/api/v1/search?tags=comment,story_${hiringThread}&query=${encodeURIComponent(kw)}&hitsPerPage=40`);
+  return (c.hits||[]).filter(h=>h.comment_text).map(h=>{ const txt=htmlToText(h.comment_text);
+    return {src:"job",title:txt.split(/[.|·\n]| - /)[0].slice(0,80),snippet:txt.slice(0,260),
+      url:`https://news.ycombinator.com/item?id=${h.objectID}`,time:h.created_at_i*1000,meta:[]}; });
+}
+
+// ---------- 渲染 ----------
+const COLS={news:fetchNews,tech:fetchTech,jobs:fetchJobs};
+function renderCards(col,items){
+  const body=$(`#${col}-body`);
+  if(!items.length){ body.innerHTML=`<div class="col-state">${t("empty")}</div>`; return; }
+  body.innerHTML=items.map(it=>`<a class="card" href="${esc(it.url)}" target="_blank" rel="noopener">
+    <div class="card-top"><span class="src ${it.src}">${srcLabel(it.src)}</span>${it.time?`<span class="ago">${timeAgo(it.time)}</span>`:""}</div>
+    <div class="card-title">${esc(it.title)}</div>
+    ${it.snippet?`<div class="card-snip">${esc(it.snippet)}</div>`:""}
+    ${it.meta&&it.meta.length?`<div class="card-meta">${it.meta.filter(m=>m[1]!==""&&m[1]!=null).map(m=>`<span>${m[0]?metaIcon(m[0])+" ":""}${esc(m[1])}${m[0]?" "+t(m[0]):""}</span>`).join("")}</div>`:""}
+  </a>`).join("");
+  body.scrollTop=0;
+}
+function srcLabel(s){ return {hn:"HN",gh:"GitHub",hf:"HF",dev:"dev.to",arxiv:"arXiv",job:"HIRING"}[s]||s; }
+function metaIcon(k){ return {pts:"▲",cmt:"💬",star:"★",likes:"♥",dl:"⬇"}[k]||""; }
+
+async function loadCol(col,opts={}){
+  const kw=$("#kw").value.trim()||"AI", range=$("#range").value;
+  const body=$(`#${col}-body`), rf=document.querySelector(`.rf[data-col="${col}"]`);
+  rf?.classList.add("spin");
+  if(!opts.silent && !cache[col]) body.innerHTML=`<div class="skel"></div>`.repeat(4);
+  try{
+    const items=await COLS[col](kw,range);
+    cache[col]={items,ts:Date.now(),kw,range}; saveJSON(CACHE_KEY,cache);
+    renderCards(col,items); setMeta(col,items.length,Date.now());
+  }catch(e){
+    if(cache[col]?.items?.length){ renderCards(col,cache[col].items); setMeta(col,cache[col].items.length,cache[col].ts,true); }
+    else body.innerHTML=`<div class="col-state err">${t("error")}</div>`;
+  }finally{ rf?.classList.remove("spin"); }
+}
+function setMeta(col,n,ts,cached){ $(`#${col}-meta`).textContent=`${n} · ${t("updated")} ${timeAgo(ts)}${cached?" (cache)":""}`; }
+
+function fmtDate(ts){ try{ return new Date(ts).toLocaleString(lang==="zh"?"zh-CN":"en-US",{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"}); }catch(e){ return ""; } }
+function filterItems(items){
+  const kw=($("#kw").value.trim()||"").toLowerCase(), since=sinceTs($("#range").value);
+  return (items||[]).filter(it=>{
+    if(kw && !((it.title||"")+" "+(it.snippet||"")).toLowerCase().includes(kw)) return false;
+    if(since && it.time && it.time<since*1000) return false;
+    return true;
+  });
+}
+async function tryLoadSnapshot(){
+  if(cfg.forceLive){ snapMode=false; return; }
+  try{ const r=await fetch("./data.json",{cache:"no-store"}); if(!r.ok) throw 0;
+    const d=await r.json(); if(d&&(d.news||d.tech||d.jobs)){ snapshot=d; snapMode=true; return; } }catch(e){}
+  snapMode=false;
+}
+function renderSnapshot(){
+  const ts=snapshot?.meta?.generatedAt?new Date(snapshot.meta.generatedAt).getTime():Date.now();
+  Object.keys(COLS).forEach(c=>{ const items=filterItems(snapshot[c]||[]); renderCards(c,items);
+    $(`#${c}-meta`).textContent=`${items.length} · ${t("daily")} ${fmtDate(ts)}`; });
+}
+function applyFilter(){ if(snapMode) renderSnapshot(); else refreshAll(); }
+
+async function refreshAll(){
+  hiringThread=null; await tryLoadSnapshot();
+  if(snapMode) renderSnapshot();
+  else Object.keys(COLS).forEach(c=>loadCol(c));
+}
+
+// ---------- 控件 ----------
+$("#refreshAll").onclick=()=>{ refreshAll(); toast(t("refreshed")); };
+$("#kw").addEventListener("keydown",e=>{ if(e.key==="Enter") applyFilter(); });
+$("#range").onchange=applyFilter;
+document.querySelectorAll(".rf").forEach(b=>b.onclick=()=>{ if(snapMode) renderSnapshot(); else loadCol(b.dataset.col); });
+$("#langBtn").onclick=()=>{ lang=lang==="zh"?"en":"zh"; localStorage.setItem(LANG_KEY,lang); applyLang();
+  if(snapMode) renderSnapshot(); else Object.keys(COLS).forEach(c=>{ if(cache[c])setMeta(c,cache[c].items.length,cache[c].ts); }); };
+
+let autoTimer=null;
+function setAuto(on){ cfg.auto=on; saveJSON(CFG_KEY,cfg); $("#autoBtn").classList.toggle("on",on);
+  clearInterval(autoTimer); if(on)autoTimer=setInterval(()=>refreshAll(),5*60*1000); }
+$("#autoBtn").onclick=()=>setAuto(!cfg.auto);
+
+// 设置弹窗
+$("#setBtn").onclick=()=>{ $("#arxivToggle").classList.toggle("on",cfg.arxiv); $("#liveToggle").classList.toggle("on",cfg.forceLive); $("#proxyUrl").value=cfg.proxy; $("#setModal").classList.add("show"); };
+$("#setClose").onclick=()=>{ cfg.arxiv=$("#arxivToggle").classList.contains("on"); cfg.forceLive=$("#liveToggle").classList.contains("on"); cfg.proxy=$("#proxyUrl").value.trim(); saveJSON(CFG_KEY,cfg); $("#setModal").classList.remove("show"); refreshAll(); };
+$("#arxivToggle").onclick=function(){ this.classList.toggle("on"); };
+$("#liveToggle").onclick=function(){ this.classList.toggle("on"); };
+$("#setModal").onclick=e=>{ if(e.target.id==="setModal"){ $("#setClose").click(); } };
+
+function applyLang(){
+  document.documentElement.lang=lang==="zh"?"zh-CN":"en";
+  document.querySelectorAll("[data-i18n]").forEach(el=>el.textContent=t(el.dataset.i18n));
+  document.querySelectorAll("[data-i18n-tt]").forEach(el=>el.title=t(el.dataset.i18nTt));
+  $("#langBtn").textContent=lang==="zh"?"EN":"中";
+  $("#jobs-body").dataset.hint=t("jobsHint");
+}
+
+// ---------- 启动 ----------
+function boot(){
+  applyLang(); setAuto(cfg.auto!==false);
+  // 先渲染缓存（离线/秒开），再联网刷新
+  Object.keys(COLS).forEach(c=>{ if(cache[c]?.items){ renderCards(c,cache[c].items); setMeta(c,cache[c].items.length,cache[c].ts,true); } });
+  refreshAll();
+}
+boot();
+</script>
+</body>
+</html>
