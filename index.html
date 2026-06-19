@@ -36,8 +36,8 @@
   .btn.on{background:var(--accent-soft);border-color:rgba(68,147,248,.5);color:var(--accent)}
   .btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 
-  .board{flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:0;overflow:hidden}
-  .col{display:flex;flex-direction:column;border-right:1px solid var(--border);overflow:hidden;min-width:0}
+  .board{flex:1;display:flex;overflow-x:auto;overflow-y:hidden}
+  .col{flex:1 1 0;min-width:300px;display:flex;flex-direction:column;border-right:1px solid var(--border);overflow:hidden}
   .col:last-child{border-right:none}
   .col-h{flex:none;display:flex;align-items:center;gap:9px;padding:13px 15px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,var(--panel),rgba(22,27,34,0))}
   .col-h .ic{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;flex:none}
@@ -60,6 +60,7 @@
   .src.hn{background:rgba(255,122,24,.16);color:var(--hn)} .src.gh{background:rgba(201,209,217,.12);color:var(--gh)}
   .src.hf{background:rgba(255,204,77,.16);color:var(--hf)} .src.dev{background:rgba(203,213,225,.12);color:var(--dev)}
   .src.arxiv{background:rgba(178,24,43,.18);color:#ff8090} .src.job{background:rgba(91,214,111,.16);color:var(--job)}
+  .src.tele{background:rgba(59,130,196,.18);color:#6db0ee}
   .ago{margin-left:auto;font-size:11px;color:var(--muted);font-family:var(--mono);white-space:nowrap}
   .card-title{font-size:13.5px;line-height:1.45;font-weight:600;color:#eef2f7}
   .card-snip{font-size:12.5px;line-height:1.55;color:#aeb6c0;margin-top:6px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
@@ -90,19 +91,19 @@
 
   @media (max-width:860px){
     body{overflow:auto;height:auto;min-height:100vh}
-    .board{grid-template-columns:1fr;overflow:visible}
-    .col{border-right:none;border-bottom:1px solid var(--border)}
-    .col-body{max-height:none}
+    .board{flex-direction:column;overflow:visible}
+    .col{border-right:none;border-bottom:1px solid var(--border);min-width:0;flex:none}
+    .col-body{max-height:none;overflow:visible}
     .btn span.lbl{display:none}
   }
 </style>
 </head>
 <body>
 <div class="topbar">
-  <div class="brand"><span class="dot"></span>AIPulse <small>v1.1</small></div>
+  <div class="brand"><span class="dot"></span>AIPulse <small>v1.2</small></div>
   <div class="search">
     <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    <input id="kw" placeholder="关键词，如 AI / LLM / agent / RAG…" value="AI" autocomplete="off">
+    <input id="kw" placeholder="关键词筛选（留空=全部，如 LLM / RAG / 5G）…" value="" autocomplete="off">
   </div>
   <select id="range">
     <option value="today" data-i18n="rToday">今天</option>
@@ -135,6 +136,12 @@
       <button class="rf" data-col="jobs"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button></div>
     <div class="col-body" id="jobs-body"></div>
   </div>
+  <div class="col">
+    <div class="col-h"><span class="ic" style="background:#3b82c4"><svg viewBox="0 0 24 24"><path d="M5 12.5a7 7 0 0 1 14 0"/><path d="M2 9a11 11 0 0 1 20 0"/><line x1="12" y1="16" x2="12" y2="21"/><circle cx="12" cy="13" r="1.5"/></svg></span>
+      <div class="ti"><b data-i18n="cTele">通讯行业</b><span id="tele-meta">—</span></div>
+      <button class="rf" data-col="tele"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button></div>
+    <div class="col-body" id="tele-body"></div>
+  </div>
 </div>
 
 <div class="modal" id="setModal">
@@ -163,14 +170,14 @@
 const LANG_KEY="aipulse_lang", CFG_KEY="aipulse_cfg", CACHE_KEY="aipulse_cache_v1";
 const I18N={
  zh:{rToday:"今天",rWeek:"本周",rMonth:"本月",rAll:"全部",refresh:"刷新",autoTip:"自动刷新(5分钟)",setTip:"设置",
-   cNews:"AI 前沿",cTech:"技术栈",cJobs:"招聘岗位",setTitle:"设置",
+   cNews:"AI 前沿",cTech:"技术栈",cJobs:"招聘岗位",cTele:"通讯行业",setTitle:"设置",
    arxivLbl:"启用 arXiv 论文源（前沿栏）",arxivHint:"arXiv 不支持跨域，需经公共代理，可能较慢或偶尔失败。",
    proxyLbl:"CORS 代理地址（用于 arXiv）",proxyHint:"代理会拼在目标 URL 前。生产环境建议改用 GitHub Actions 定时抓取写入同源 data.json。",
    close:"关闭",loading:"加载中…",empty:"暂无结果，换个关键词或时间范围",error:"加载失败（可能被限流/跨域），显示上次缓存",
    updated:"更新于",pts:"赞",cmt:"评论",star:"星",likes:"喜欢",dl:"下载",view:"查看职位",refreshed:"已刷新",jobsHint:"来自 HN 每月「Who is hiring」帖，按关键词筛选",
    daily:"每日快照",liveLbl:"强制实时抓取（忽略 data.json）",liveHint:"关闭时优先读取每天由 GitHub Actions 生成的同源 data.json；找不到才用浏览器直连。"},
  en:{rToday:"Today",rWeek:"This week",rMonth:"This month",rAll:"All",refresh:"Refresh",autoTip:"Auto refresh (5 min)",setTip:"Settings",
-   cNews:"AI Frontier",cTech:"Tech Stack",cJobs:"Jobs",setTitle:"Settings",
+   cNews:"AI Frontier",cTech:"Tech Stack",cJobs:"Jobs",cTele:"Telecom",setTitle:"Settings",
    arxivLbl:"Enable arXiv papers (Frontier)",arxivHint:"arXiv has no CORS; routed via a public proxy, may be slow or fail occasionally.",
    proxyLbl:"CORS proxy URL (for arXiv)",proxyHint:"Prepended to the target URL. For production prefer a GitHub Actions cron writing a same-origin data.json.",
    close:"Close",loading:"Loading…",empty:"No results — try another keyword or range",error:"Failed (rate-limited/CORS); showing cached",
@@ -204,6 +211,7 @@ function sinceTs(r){ const dt=sinceDate(r); return dt?Math.floor(new Date(dt).ge
 async function jget(url){ const r=await fetch(url,{headers:{"Accept":"application/json"}}); if(!r.ok)throw new Error(r.status); return r.json(); }
 
 async function fetchNews(kw,range){
+  kw=kw||"AI";
   const since=sinceTs(range), items=[];
   // Hacker News 故事
   const hn=await jget(`https://hn.algolia.com/api/v1/search_by_date?query=${encodeURIComponent(kw)}&tags=story&numericFilters=created_at_i>${since}&hitsPerPage=30`);
@@ -228,6 +236,7 @@ async function fetchNews(kw,range){
 function devTag(kw){ const k=kw.toLowerCase(); if(/ml|machine/.test(k))return "machinelearning"; if(/llm|gpt|agent|rag/.test(k))return "ai"; return "ai"; }
 
 async function fetchTech(kw,range){
+  kw=kw||"AI";
   const items=[]; const since=sinceDate(range);
   // GitHub 热门仓库
   let q=`${kw} stars:>30`; if(since)q+=` pushed:>${since}`;
@@ -244,6 +253,7 @@ function fmtNum(n){ return n>=1e6?(n/1e6).toFixed(1)+"M":n>=1e3?(n/1e3).toFixed(
 
 let hiringThread=null;
 async function fetchJobs(kw){
+  kw=kw||"AI";
   // 找到最新的 "Ask HN: Who is hiring?" 帖子
   if(!hiringThread){ const s=await jget(`https://hn.algolia.com/api/v1/search?query=${encodeURIComponent("Ask HN: Who is hiring")}&tags=story&hitsPerPage=5`);
     const hit=(s.hits||[]).filter(h=>/who is hiring/i.test(h.title||"")).sort((a,b)=>b.created_at_i-a.created_at_i)[0];
@@ -255,8 +265,22 @@ async function fetchJobs(kw){
       url:`https://news.ycombinator.com/item?id=${h.objectID}`,time:h.created_at_i*1000,meta:[]}; });
 }
 
+async function fetchTelecom(kw,range){
+  const since=sinceTs(range), items=[], seen=new Set();
+  const terms = kw ? [kw] : ["5G","6G","Open RAN","telecom"];   // 留空时抓通讯通用热词
+  for(const q of terms){ try{
+    const d=await jget(`https://hn.algolia.com/api/v1/search_by_date?query=${encodeURIComponent(q)}&tags=story&numericFilters=created_at_i>${since}&hitsPerPage=20`);
+    (d.hits||[]).forEach(h=>{ if(h.title) items.push({src:"hn",title:h.title,url:h.url||`https://news.ycombinator.com/item?id=${h.objectID}`,
+      time:h.created_at_i*1000,meta:[["pts",h.points||0],["cmt",h.num_comments||0]]}); });
+  }catch(e){} }
+  try{ const top=range==="today"?1:range==="week"?7:range==="month"?30:90;
+    const dv=await jget(`https://dev.to/api/articles?tag=networking&per_page=10&top=${top}`);
+    (dv||[]).forEach(a=>items.push({src:"dev",title:a.title,url:a.url,time:new Date(a.published_at).getTime(),meta:[["likes",a.positive_reactions_count||0]]})); }catch(e){}
+  return items.filter(it=>{ if(seen.has(it.url))return false; seen.add(it.url); return true; }).sort((a,b)=>b.time-a.time);
+}
+
 // ---------- 渲染 ----------
-const COLS={news:fetchNews,tech:fetchTech,jobs:fetchJobs};
+const COLS={news:fetchNews,tech:fetchTech,jobs:fetchJobs,tele:fetchTelecom};
 function renderCards(col,items){
   const body=$(`#${col}-body`);
   if(!items.length){ body.innerHTML=`<div class="col-state">${t("empty")}</div>`; return; }
@@ -268,11 +292,12 @@ function renderCards(col,items){
   </a>`).join("");
   body.scrollTop=0;
 }
-function srcLabel(s){ return {hn:"HN",gh:"GitHub",hf:"HF",dev:"dev.to",arxiv:"arXiv",job:"HIRING"}[s]||s; }
+function srcLabel(s){ return {hn:"HN",gh:"GitHub",hf:"HF",dev:"dev.to",arxiv:"arXiv",job:"HIRING",tele:"TELECOM"}[s]||s; }
 function metaIcon(k){ return {pts:"▲",cmt:"💬",star:"★",likes:"♥",dl:"⬇"}[k]||""; }
 
 async function loadCol(col,opts={}){
-  const kw=$("#kw").value.trim()||"AI", range=$("#range").value;
+  const raw=$("#kw").value.trim(), range=$("#range").value;
+  const kw = raw || (col==="tele" ? "" : "AI");
   const body=$(`#${col}-body`), rf=document.querySelector(`.rf[data-col="${col}"]`);
   rf?.classList.add("spin");
   if(!opts.silent && !cache[col]) body.innerHTML=`<div class="skel"></div>`.repeat(4);
