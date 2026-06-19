@@ -2,8 +2,9 @@ name: Update AIPulse data
 
 on:
   schedule:
-    # 每天 UTC 21:00 运行 = 越南/北京时间次日 04:00–05:00（凌晨刷新，早上看最新）
-    - cron: "0 21 * * *"
+    # 每天两次：UTC 00:00 与 12:00 = 越南/北京时间约 07:00 与 19:00（早晚各刷一次）
+    - cron: "0 0 * * *"
+    - cron: "0 12 * * *"
   workflow_dispatch: {}   # 也可在 Actions 页面手动触发
 
 permissions:
