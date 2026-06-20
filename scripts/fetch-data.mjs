@@ -206,7 +206,7 @@ async function srcBluesky(q, max = 15) {
     return (d.posts || []).map(p => {
       const text = (p.record && p.record.text || "").trim(), handle = p.author && p.author.handle, rkey = (p.uri || "").split("/").pop();
       if (!text || !handle) return null;
-      return { src: "bsky", title: text.length > 90 ? text.slice(0, 90) + "…" : text,
+      return { src: "bsky", title: text.length > 90 ? text.slice(0, 90) + "…" : text, author: handle,
         snippet: text.length > 90 ? text : "", url: `https://bsky.app/profile/${handle}/post/${rkey}`,
         time: Date.parse((p.record && p.record.createdAt) || p.indexedAt) || Date.now(),
         meta: [["likes", p.likeCount || 0], [null, "↻ " + (p.repostCount || 0)]] };
@@ -217,11 +217,26 @@ async function srcMastodon(tag, max = 12) {
   try {
     const d = await getJSON(`https://mastodon.social/api/v1/timelines/tag/${encodeURIComponent(tag)}?limit=${max}`);
     return (d || []).map(s => { const text = decode(s.content || ""); if (!text) return null;
-      return { src: "masto", title: text.length > 90 ? text.slice(0, 90) + "…" : text,
+      return { src: "masto", title: text.length > 90 ? text.slice(0, 90) + "…" : text, author: s.account && s.account.acct,
         snippet: text.length > 90 ? text : "", url: s.url || s.uri, time: Date.parse(s.created_at) || Date.now(),
         meta: [["likes", s.favourites_count || 0], [null, "↻ " + (s.reblogs_count || 0)]] };
     }).filter(Boolean);
   } catch (e) { console.warn("masto", tag, e.message); return []; }
+}
+
+async function srcReddit(subs, max = 10) {
+  const out = [];
+  for (const sub of subs) {
+    try {
+      const d = await getJSON(`https://www.reddit.com/r/${sub}/top.json?t=week&limit=${max}`);
+      (d.data && d.data.children || []).forEach(ch => { const p = ch.data; if (!p || p.stickied) return;
+        out.push({ src: "reddit", title: p.title, author: "r/" + p.subreddit,
+          snippet: (p.selftext || "").slice(0, 200), url: "https://www.reddit.com" + p.permalink,
+          time: (p.created_utc || 0) * 1000 || Date.now(), meta: [["pts", p.ups || 0], ["cmt", p.num_comments || 0]] });
+      });
+    } catch (e) { console.warn("reddit", sub, e.message); }
+  }
+  return out;
 }
 
 // ---------- 合并 / 去重 / 截断 ----------
@@ -231,17 +246,19 @@ function dedupe(items) {
 }
 
 (async () => {
-  const [hn, dev, arxiv, feeds, gh, hf, jobs, teleFeeds, teleHN, bskyAI, bskyTele, mastoAI, mastoTele] = await Promise.all([
+  const [hn, dev, arxiv, feeds, gh, hf, jobs, teleFeeds, teleHN, bskyAI, bskyTele, mastoAI, mastoTele, redditAI, redditTele] = await Promise.all([
     srcHNStories(), srcDevto(), srcArxiv(), srcFeeds(), srcGitHub(), srcHF(), srcJobs(), srcTelecomFeeds(), srcTelecomHN(),
     Promise.all([srcBluesky("AI"), srcBluesky("LLM")]).then(a => a.flat()),
     Promise.all([srcBluesky("5G"), srcBluesky("telecom")]).then(a => a.flat()),
     Promise.all([srcMastodon("AI"), srcMastodon("MachineLearning")]).then(a => a.flat()),
-    Promise.all([srcMastodon("telecom"), srcMastodon("5G")]).then(a => a.flat())
+    Promise.all([srcMastodon("telecom"), srcMastodon("5G")]).then(a => a.flat()),
+    srcReddit(["MachineLearning", "LocalLLaMA", "artificial"]),
+    srcReddit(["telecom", "networking"])
   ]);
-  const news = dedupe([...hn, ...dev, ...arxiv, ...feeds, ...bskyAI, ...mastoAI]).sort((a, b) => b.time - a.time).slice(0, 80);
+  const news = dedupe([...hn, ...dev, ...arxiv, ...feeds, ...bskyAI, ...mastoAI, ...redditAI]).sort((a, b) => b.time - a.time).slice(0, 90);
   const tech = dedupe([...gh, ...hf]).slice(0, 50);
   const jobsList = dedupe(jobs).sort((a, b) => b.time - a.time).slice(0, 45);
-  const telecom = dedupe([...teleFeeds, ...teleHN, ...bskyTele, ...mastoTele]).sort((a, b) => b.time - a.time).slice(0, 70);
+  const telecom = dedupe([...teleFeeds, ...teleHN, ...bskyTele, ...mastoTele, ...redditTele]).sort((a, b) => b.time - a.time).slice(0, 80);
 
   const data = { meta: { generatedAt: new Date().toISOString(), keywords: NEWS_QUERIES,
       counts: { news: news.length, tech: tech.length, jobs: jobsList.length, tele: telecom.length } },
