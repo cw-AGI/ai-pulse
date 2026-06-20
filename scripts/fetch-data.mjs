@@ -199,6 +199,31 @@ async function srcTelecomHN() {
   return all;
 }
 
+// ---------- 社交热帖：Bluesky（AT Protocol 公开 API）/ Mastodon（公开话题）----------
+async function srcBluesky(q, max = 15) {
+  try {
+    const d = await getJSON(`https://public.api.bsky.app/xrpc/app.bsky.feed.searchPosts?q=${encodeURIComponent(q)}&sort=top&limit=${max}&lang=en`);
+    return (d.posts || []).map(p => {
+      const text = (p.record && p.record.text || "").trim(), handle = p.author && p.author.handle, rkey = (p.uri || "").split("/").pop();
+      if (!text || !handle) return null;
+      return { src: "bsky", title: text.length > 90 ? text.slice(0, 90) + "…" : text,
+        snippet: text.length > 90 ? text : "", url: `https://bsky.app/profile/${handle}/post/${rkey}`,
+        time: Date.parse((p.record && p.record.createdAt) || p.indexedAt) || Date.now(),
+        meta: [["likes", p.likeCount || 0], [null, "↻ " + (p.repostCount || 0)]] };
+    }).filter(Boolean);
+  } catch (e) { console.warn("bsky", q, e.message); return []; }
+}
+async function srcMastodon(tag, max = 12) {
+  try {
+    const d = await getJSON(`https://mastodon.social/api/v1/timelines/tag/${encodeURIComponent(tag)}?limit=${max}`);
+    return (d || []).map(s => { const text = decode(s.content || ""); if (!text) return null;
+      return { src: "masto", title: text.length > 90 ? text.slice(0, 90) + "…" : text,
+        snippet: text.length > 90 ? text : "", url: s.url || s.uri, time: Date.parse(s.created_at) || Date.now(),
+        meta: [["likes", s.favourites_count || 0], [null, "↻ " + (s.reblogs_count || 0)]] };
+    }).filter(Boolean);
+  } catch (e) { console.warn("masto", tag, e.message); return []; }
+}
+
 // ---------- 合并 / 去重 / 截断 ----------
 function dedupe(items) {
   const seen = new Set();
@@ -206,13 +231,17 @@ function dedupe(items) {
 }
 
 (async () => {
-  const [hn, dev, arxiv, feeds, gh, hf, jobs, teleFeeds, teleHN] = await Promise.all([
-    srcHNStories(), srcDevto(), srcArxiv(), srcFeeds(), srcGitHub(), srcHF(), srcJobs(), srcTelecomFeeds(), srcTelecomHN()
+  const [hn, dev, arxiv, feeds, gh, hf, jobs, teleFeeds, teleHN, bskyAI, bskyTele, mastoAI, mastoTele] = await Promise.all([
+    srcHNStories(), srcDevto(), srcArxiv(), srcFeeds(), srcGitHub(), srcHF(), srcJobs(), srcTelecomFeeds(), srcTelecomHN(),
+    Promise.all([srcBluesky("AI"), srcBluesky("LLM")]).then(a => a.flat()),
+    Promise.all([srcBluesky("5G"), srcBluesky("telecom")]).then(a => a.flat()),
+    Promise.all([srcMastodon("AI"), srcMastodon("MachineLearning")]).then(a => a.flat()),
+    Promise.all([srcMastodon("telecom"), srcMastodon("5G")]).then(a => a.flat())
   ]);
-  const news = dedupe([...hn, ...dev, ...arxiv, ...feeds]).sort((a, b) => b.time - a.time).slice(0, 70);
+  const news = dedupe([...hn, ...dev, ...arxiv, ...feeds, ...bskyAI, ...mastoAI]).sort((a, b) => b.time - a.time).slice(0, 80);
   const tech = dedupe([...gh, ...hf]).slice(0, 50);
   const jobsList = dedupe(jobs).sort((a, b) => b.time - a.time).slice(0, 45);
-  const telecom = dedupe([...teleFeeds, ...teleHN]).sort((a, b) => b.time - a.time).slice(0, 60);
+  const telecom = dedupe([...teleFeeds, ...teleHN, ...bskyTele, ...mastoTele]).sort((a, b) => b.time - a.time).slice(0, 70);
 
   const data = { meta: { generatedAt: new Date().toISOString(), keywords: NEWS_QUERIES,
       counts: { news: news.length, tech: tech.length, jobs: jobsList.length, tele: telecom.length } },
