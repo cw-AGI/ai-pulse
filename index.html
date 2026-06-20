@@ -61,6 +61,18 @@
   .src.hf{background:rgba(255,204,77,.16);color:var(--hf)} .src.dev{background:rgba(203,213,225,.12);color:var(--dev)}
   .src.arxiv{background:rgba(178,24,43,.18);color:#ff8090} .src.job{background:rgba(91,214,111,.16);color:var(--job)}
   .src.tele{background:rgba(59,130,196,.18);color:#6db0ee}
+
+  .tabs{display:none;gap:6px;padding:8px 10px;background:var(--panel);border-bottom:1px solid var(--border);overflow-x:auto}
+  .tabs button{flex:1;white-space:nowrap;min-width:74px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--panel-2);color:var(--muted);font-size:13px;cursor:pointer;transition:.13s}
+  .tabs button.active{background:var(--accent-soft);border-color:rgba(68,147,248,.5);color:var(--accent);font-weight:600}
+
+  .chips{display:flex;gap:7px;padding:9px 12px;background:var(--panel);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
+  .chips::-webkit-scrollbar{height:0}
+  .chip{flex:none;height:30px;padding:0 13px;border-radius:15px;border:1px solid var(--border);background:var(--panel-2);color:var(--muted);font-size:12.5px;cursor:pointer;white-space:nowrap;transition:.13s}
+  .chip:hover{border-color:#3b4356;color:var(--text)}
+  .chip.active{background:var(--accent-soft);border-color:rgba(68,147,248,.5);color:var(--accent);font-weight:600}
+  .chip.tele{border-color:rgba(59,130,196,.3)}
+  .chip.tele.active{background:rgba(59,130,196,.16);border-color:rgba(59,130,196,.6);color:#6db0ee}
   .ago{margin-left:auto;font-size:11px;color:var(--muted);font-family:var(--mono);white-space:nowrap}
   .card-title{font-size:13.5px;line-height:1.45;font-weight:600;color:#eef2f7}
   .card-snip{font-size:12.5px;line-height:1.55;color:#aeb6c0;margin-top:6px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
@@ -91,6 +103,7 @@
 
   @media (max-width:860px){
     body{overflow:auto;height:auto;min-height:100vh}
+    .tabs{display:flex}
     .board{flex-direction:column;overflow:visible}
     .col{border-right:none;border-bottom:1px solid var(--border);min-width:0;flex:none}
     .col-body{max-height:none;overflow:visible}
@@ -100,7 +113,7 @@
 </head>
 <body>
 <div class="topbar">
-  <div class="brand"><span class="dot"></span>AIPulse <small>v1.2</small></div>
+  <div class="brand"><span class="dot"></span>AIPulse <small>v1.4</small></div>
   <div class="search">
     <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
     <input id="kw" placeholder="关键词筛选（留空=全部，如 LLM / RAG / 5G）…" value="" autocomplete="off">
@@ -115,6 +128,29 @@
   <button class="btn icon on" id="autoBtn" data-i18n-tt="autoTip" title="自动刷新"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg></button>
   <button class="btn icon" id="setBtn" data-i18n-tt="setTip" title="设置"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-2.82 1.17V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15H4.5a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 6 9.4l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 11 6.6V4.5a2 2 0 1 1 4 0v.09A1.65 1.65 0 0 0 18 6.6l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 11h.1a2 2 0 1 1 0 4z"/></svg></button>
   <button class="btn" id="langBtn">EN</button>
+</div>
+
+<div class="chips" id="chips">
+  <button class="chip active" data-kw="" data-i18n="chipAll">全部</button>
+  <button class="chip" data-kw="LLM">LLM</button>
+  <button class="chip" data-kw="Agent">Agent</button>
+  <button class="chip" data-kw="RAG">RAG</button>
+  <button class="chip" data-kw="Multimodal">Multimodal</button>
+  <button class="chip" data-kw="Open Source">Open Source</button>
+  <button class="chip tele" data-kw="5G">5G</button>
+  <button class="chip tele" data-kw="6G">6G</button>
+  <button class="chip tele" data-kw="Open RAN">Open RAN</button>
+  <button class="chip tele" data-kw="ZTE">ZTE</button>
+  <button class="chip tele" data-kw="VNPT">VNPT</button>
+  <button class="chip tele" data-kw="Starlink">Starlink</button>
+  <button class="chip tele" data-kw="fiber">Fiber</button>
+</div>
+
+<div class="tabs" id="tabs">
+  <button data-tab="news" class="active" data-i18n="cNews">AI 前沿</button>
+  <button data-tab="tech" data-i18n="cTech">技术栈</button>
+  <button data-tab="jobs" data-i18n="cJobs">招聘岗位</button>
+  <button data-tab="tele" data-i18n="cTele">通讯行业</button>
 </div>
 
 <div class="board">
@@ -170,14 +206,14 @@
 const LANG_KEY="aipulse_lang", CFG_KEY="aipulse_cfg", CACHE_KEY="aipulse_cache_v1";
 const I18N={
  zh:{rToday:"今天",rWeek:"本周",rMonth:"本月",rAll:"全部",refresh:"刷新",autoTip:"自动刷新(5分钟)",setTip:"设置",
-   cNews:"AI 前沿",cTech:"技术栈",cJobs:"招聘岗位",cTele:"通讯行业",setTitle:"设置",
+   cNews:"AI 前沿",cTech:"技术栈",cJobs:"招聘岗位",cTele:"通讯行业",setTitle:"设置",chipAll:"全部",
    arxivLbl:"启用 arXiv 论文源（前沿栏）",arxivHint:"arXiv 不支持跨域，需经公共代理，可能较慢或偶尔失败。",
    proxyLbl:"CORS 代理地址（用于 arXiv）",proxyHint:"代理会拼在目标 URL 前。生产环境建议改用 GitHub Actions 定时抓取写入同源 data.json。",
    close:"关闭",loading:"加载中…",empty:"暂无结果，换个关键词或时间范围",error:"加载失败（可能被限流/跨域），显示上次缓存",
    updated:"更新于",pts:"赞",cmt:"评论",star:"星",likes:"喜欢",dl:"下载",view:"查看职位",refreshed:"已刷新",jobsHint:"来自 HN 每月「Who is hiring」帖，按关键词筛选",
    daily:"每日快照",liveLbl:"强制实时抓取（忽略 data.json）",liveHint:"关闭时优先读取每天由 GitHub Actions 生成的同源 data.json；找不到才用浏览器直连。"},
  en:{rToday:"Today",rWeek:"This week",rMonth:"This month",rAll:"All",refresh:"Refresh",autoTip:"Auto refresh (5 min)",setTip:"Settings",
-   cNews:"AI Frontier",cTech:"Tech Stack",cJobs:"Jobs",cTele:"Telecom",setTitle:"Settings",
+   cNews:"AI Frontier",cTech:"Tech Stack",cJobs:"Jobs",cTele:"Telecom",setTitle:"Settings",chipAll:"All",
    arxivLbl:"Enable arXiv papers (Frontier)",arxivHint:"arXiv has no CORS; routed via a public proxy, may be slow or fail occasionally.",
    proxyLbl:"CORS proxy URL (for arXiv)",proxyHint:"Prepended to the target URL. For production prefer a GitHub Actions cron writing a same-origin data.json.",
    close:"Close",loading:"Loading…",empty:"No results — try another keyword or range",error:"Failed (rate-limited/CORS); showing cached",
@@ -368,11 +404,36 @@ function applyLang(){
   $("#jobs-body").dataset.hint=t("jobsHint");
 }
 
+// ---------- 快捷词 chip ----------
+function setActiveChip(el){ document.querySelectorAll("#chips .chip").forEach(c=>c.classList.toggle("active",c===el)); }
+document.querySelectorAll("#chips .chip").forEach(c=>c.onclick=()=>{ $("#kw").value=c.dataset.kw; setActiveChip(c); applyFilter(); });
+$("#kw").addEventListener("input",()=>{ const v=$("#kw").value.trim().toLowerCase(); let m=null;
+  document.querySelectorAll("#chips .chip").forEach(c=>{ if(c.dataset.kw.toLowerCase()===v) m=c; }); setActiveChip(m); });
+
+// ---------- 手机端主题标签 ----------
+let activeTab="news";
+const mq=window.matchMedia("(max-width:860px)");
+function applyTabs(){
+  document.querySelectorAll(".col").forEach(c=>{
+    const body=c.querySelector(".col-body");
+    const key=body?body.id.replace("-body",""):"";
+    c.style.display = mq.matches ? (key===activeTab?"flex":"none") : "";
+  });
+}
+document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>{
+  activeTab=b.dataset.tab;
+  document.querySelectorAll("#tabs button").forEach(x=>x.classList.toggle("active",x===b));
+  applyTabs(); window.scrollTo(0,0);
+});
+(mq.addEventListener?mq.addEventListener("change",applyTabs):window.addEventListener("resize",applyTabs));
+window.addEventListener("resize",applyTabs);
+
 // ---------- 启动 ----------
 function boot(){
   applyLang(); setAuto(cfg.auto!==false);
   // 先渲染缓存（离线/秒开），再联网刷新
   Object.keys(COLS).forEach(c=>{ if(cache[c]?.items){ renderCards(c,cache[c].items); setMeta(c,cache[c].items.length,cache[c].ts,true); } });
+  applyTabs();
   refreshAll();
 }
 boot();
