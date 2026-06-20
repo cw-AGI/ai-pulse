@@ -152,12 +152,19 @@ async function srcJobs() {
     const s = await getJSON(`https://hn.algolia.com/api/v1/search?query=${encodeURIComponent("Ask HN: Who is hiring")}&tags=story&hitsPerPage=5`);
     const hit = (s.hits || []).filter(h => /who is hiring/i.test(h.title || "")).sort((a, b) => b.created_at_i - a.created_at_i)[0];
     if (!hit) return [];
-    const c = await getJSON(`https://hn.algolia.com/api/v1/search?tags=comment,story_${hit.objectID}&hitsPerPage=80`);
-    return (c.hits || []).filter(h => h.comment_text && JOB_KEYWORDS.test(decode(h.comment_text))).map(h => {
-      const txt = decode(h.comment_text);
-      return { src: "job", title: txt.split(/[|·\n]| - |\. /)[0].slice(0, 80), snippet: txt.slice(0, 280),
-        url: `https://news.ycombinator.com/item?id=${h.objectID}`, time: h.created_at_i * 1000, meta: [] };
-    });
+    const out = [], seen = new Set();
+    // 在该招聘帖内按多个关键词检索并合并（比抓一批再正则筛更稳）
+    for (const q of ["AI", "machine learning", "LLM", "data", "ML"]) {
+      try {
+        const c = await getJSON(`https://hn.algolia.com/api/v1/search?tags=comment,story_${hit.objectID}&query=${encodeURIComponent(q)}&hitsPerPage=25`);
+        (c.hits || []).forEach(h => { if (!h.comment_text || seen.has(h.objectID)) return; seen.add(h.objectID);
+          const txt = decode(h.comment_text);
+          out.push({ src: "job", title: txt.split(/[|·\n]| - |\. /)[0].slice(0, 80), snippet: txt.slice(0, 280),
+            url: `https://news.ycombinator.com/item?id=${h.objectID}`, time: h.created_at_i * 1000, meta: [] });
+        });
+      } catch (e) {}
+    }
+    return out;
   } catch (e) { console.warn("jobs", e.message); return []; }
 }
 const fmtNum = n => n >= 1e6 ? (n / 1e6).toFixed(1) + "M" : n >= 1e3 ? (n / 1e3).toFixed(1) + "k" : "" + n;
