@@ -62,6 +62,19 @@
   .src.arxiv{background:rgba(178,24,43,.18);color:#ff8090} .src.job{background:rgba(91,214,111,.16);color:var(--job)}
   .src.tele{background:rgba(59,130,196,.18);color:#6db0ee}
   .src.bsky{background:rgba(0,133,255,.16);color:#4aa8ff} .src.masto{background:rgba(99,100,255,.16);color:#8c8dff}
+  .src.reddit{background:rgba(255,69,0,.16);color:#ff7a45}
+  .dist{display:block;font-size:10.5px;color:var(--muted);font-family:var(--mono);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hot{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.4px;padding:1px 6px;border-radius:5px;background:rgba(255,77,128,.18);color:#ff6b9d}
+  .card .auth{font-size:11px;color:var(--muted);font-family:var(--mono)}
+  .star{margin-left:6px;cursor:pointer;color:var(--muted);font-size:15px;line-height:1;padding:0 2px;flex:none}
+  .star:hover,.star.on{color:#f5c542}
+  mark{background:rgba(245,197,66,.32);color:inherit;border-radius:3px;padding:0 1px}
+  .chip .badge{display:inline-block;min-width:15px;margin-left:5px;padding:0 4px;border-radius:8px;background:var(--accent);color:#fff;font-size:10px;line-height:15px;text-align:center;font-weight:700}
+  body.light{--bg:#eef1f5;--panel:#ffffff;--panel-2:#f1f3f7;--border:#dde2ea;--border-soft:#e7ebf1;--text:#1a2230;--muted:#5b6675;--accent:#2f6fdb;--accent-soft:rgba(47,111,219,.12)}
+  body.light .card-title{color:#16202e}
+  body.light .card-snip{color:#546070}
+  body.light .skel{background:linear-gradient(90deg,#eef0f3,#e2e6ed,#eef0f3);background-size:200% 100%}
+  body.light .col-h{background:linear-gradient(180deg,#fff,rgba(255,255,255,0))}
 
   .tabs{display:none;gap:6px;padding:8px 10px;background:var(--panel);border-bottom:1px solid var(--border);overflow-x:auto}
   .tabs button{flex:1;white-space:nowrap;min-width:74px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--panel-2);color:var(--muted);font-size:13px;cursor:pointer;transition:.13s}
@@ -114,7 +127,7 @@
 </head>
 <body>
 <div class="topbar">
-  <div class="brand"><span class="dot"></span>AIPulse <small>v1.6</small></div>
+  <div class="brand"><span class="dot"></span>AIPulse <small>v3.0</small></div>
   <div class="search">
     <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
     <input id="kw" placeholder="关键词筛选（留空=全部，如 LLM / RAG / 5G）…" value="" autocomplete="off">
@@ -128,12 +141,15 @@
   <button class="btn accent" id="refreshAll"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg><span class="lbl" data-i18n="refresh">刷新</span></button>
   <button class="btn icon on" id="autoBtn" data-i18n-tt="autoTip" title="自动刷新"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg></button>
   <button class="btn icon" id="setBtn" data-i18n-tt="setTip" title="设置"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-2.82 1.17V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15H4.5a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 6 9.4l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 11 6.6V4.5a2 2 0 1 1 4 0v.09A1.65 1.65 0 0 0 18 6.6l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 11h.1a2 2 0 1 1 0 4z"/></svg></button>
+  <button class="btn icon" id="briefBtn" data-i18n-tt="briefTip" title="今日简报"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg></button>
+  <button class="btn icon" id="themeBtn" data-i18n-tt="themeTip" title="主题">☀</button>
   <button class="btn" id="langBtn">EN</button>
 </div>
 
 <div class="chips" id="chips">
   <button class="chip active" data-kw="" data-i18n="chipAll">全部</button>
   <button class="chip" data-src="social" data-i18n="chipSocial">社交热帖</button>
+  <button class="chip" data-view="fav" data-i18n="chipFav">★ 收藏</button>
   <button class="chip" data-kw="LLM">LLM</button>
   <button class="chip" data-kw="Agent">Agent</button>
   <button class="chip" data-kw="RAG">RAG</button>
@@ -158,25 +174,25 @@
 <div class="board">
   <div class="col">
     <div class="col-h"><span class="ic" style="background:#7c4dff"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
-      <div class="ti"><b data-i18n="cNews">AI 前沿</b><span id="news-meta">—</span></div>
+      <div class="ti"><b data-i18n="cNews">AI 前沿</b><span id="news-meta">—</span><span class="dist" id="news-dist"></span></div>
       <button class="rf" data-col="news"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button></div>
     <div class="col-body" id="news-body"></div>
   </div>
   <div class="col">
     <div class="col-h"><span class="ic" style="background:#1f9b6b"><svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span>
-      <div class="ti"><b data-i18n="cTech">技术栈</b><span id="tech-meta">—</span></div>
+      <div class="ti"><b data-i18n="cTech">技术栈</b><span id="tech-meta">—</span><span class="dist" id="tech-dist"></span></div>
       <button class="rf" data-col="tech"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button></div>
     <div class="col-body" id="tech-body"></div>
   </div>
   <div class="col">
     <div class="col-h"><span class="ic" style="background:#c9762f"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></span>
-      <div class="ti"><b data-i18n="cJobs">招聘岗位</b><span id="jobs-meta">—</span></div>
+      <div class="ti"><b data-i18n="cJobs">招聘岗位</b><span id="jobs-meta">—</span><span class="dist" id="jobs-dist"></span></div>
       <button class="rf" data-col="jobs"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button></div>
     <div class="col-body" id="jobs-body"></div>
   </div>
   <div class="col">
     <div class="col-h"><span class="ic" style="background:#3b82c4"><svg viewBox="0 0 24 24"><path d="M5 12.5a7 7 0 0 1 14 0"/><path d="M2 9a11 11 0 0 1 20 0"/><line x1="12" y1="16" x2="12" y2="21"/><circle cx="12" cy="13" r="1.5"/></svg></span>
-      <div class="ti"><b data-i18n="cTele">通讯行业</b><span id="tele-meta">—</span></div>
+      <div class="ti"><b data-i18n="cTele">通讯行业</b><span id="tele-meta">—</span><span class="dist" id="tele-dist"></span></div>
       <button class="rf" data-col="tele"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button></div>
     <div class="col-body" id="tele-body"></div>
   </div>
@@ -208,14 +224,16 @@
 const LANG_KEY="aipulse_lang", CFG_KEY="aipulse_cfg", CACHE_KEY="aipulse_cache_v1";
 const I18N={
  zh:{rToday:"今天",rWeek:"本周",rMonth:"本月",rAll:"全部",refresh:"刷新",autoTip:"自动刷新(5分钟)",setTip:"设置",
-   cNews:"AI 前沿",cTech:"技术栈",cJobs:"招聘岗位",cTele:"通讯行业",setTitle:"设置",chipAll:"全部",chipSocial:"社交热帖",
+   cNews:"AI 前沿",cTech:"技术栈",cJobs:"招聘岗位",cTele:"通讯行业",setTitle:"设置",chipAll:"全部",chipSocial:"社交热帖",chipFav:"★ 收藏",
+   hot:"热帖",save:"收藏",briefTip:"导出今日简报",themeTip:"切换主题",briefTitle:"今日情报简报",briefDone:"简报已导出",
    arxivLbl:"启用 arXiv 论文源（前沿栏）",arxivHint:"arXiv 不支持跨域，需经公共代理，可能较慢或偶尔失败。",
    proxyLbl:"CORS 代理地址（用于 arXiv）",proxyHint:"代理会拼在目标 URL 前。生产环境建议改用 GitHub Actions 定时抓取写入同源 data.json。",
    close:"关闭",loading:"加载中…",empty:"暂无结果，换个关键词或时间范围",error:"加载失败（可能被限流/跨域），显示上次缓存",
    updated:"更新于",pts:"赞",cmt:"评论",star:"星",likes:"喜欢",dl:"下载",view:"查看职位",refreshed:"已刷新",jobsHint:"来自 HN 每月「Who is hiring」帖，按关键词筛选",
    daily:"每日快照",liveLbl:"强制实时抓取（忽略 data.json）",liveHint:"关闭时优先读取每天由 GitHub Actions 生成的同源 data.json；找不到才用浏览器直连。"},
  en:{rToday:"Today",rWeek:"This week",rMonth:"This month",rAll:"All",refresh:"Refresh",autoTip:"Auto refresh (5 min)",setTip:"Settings",
-   cNews:"AI Frontier",cTech:"Tech Stack",cJobs:"Jobs",cTele:"Telecom",setTitle:"Settings",chipAll:"All",chipSocial:"Social",
+   cNews:"AI Frontier",cTech:"Tech Stack",cJobs:"Jobs",cTele:"Telecom",setTitle:"Settings",chipAll:"All",chipSocial:"Social",chipFav:"★ Saved",
+   hot:"HOT",save:"Save",briefTip:"Export today's brief",themeTip:"Toggle theme",briefTitle:"Daily Intelligence Brief",briefDone:"Brief exported",
    arxivLbl:"Enable arXiv papers (Frontier)",arxivHint:"arXiv has no CORS; routed via a public proxy, may be slow or fail occasionally.",
    proxyLbl:"CORS proxy URL (for arXiv)",proxyHint:"Prepended to the target URL. For production prefer a GitHub Actions cron writing a same-origin data.json.",
    close:"Close",loading:"Loading…",empty:"No results — try another keyword or range",error:"Failed (rate-limited/CORS); showing cached",
@@ -319,18 +337,39 @@ async function fetchTelecom(kw,range){
 
 // ---------- 渲染 ----------
 const COLS={news:fetchNews,tech:fetchTech,jobs:fetchJobs,tele:fetchTelecom};
+// ---------- 收藏 ----------
+const FAV_KEY="aipulse_favs"; let favs=loadJSON(FAV_KEY,{});
+const isFav=url=>!!favs[url];
+function toggleFav(it,col){ if(favs[it.url]) delete favs[it.url]; else favs[it.url]={...it,col}; saveJSON(FAV_KEY,favs); }
+
+const rendered={};   // 各栏当前渲染条目，供星标查找
+const isSocial=s=>s==="bsky"||s==="masto"||s==="reddit";
+function hl(text){ const kw=$("#kw").value.trim(); const e=esc(text); if(!kw) return e;
+  return e.replace(new RegExp("("+kw.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+")","ig"),"<mark>$1</mark>"); }
 function renderCards(col,items){
+  rendered[col]=items;
   const body=$(`#${col}-body`);
-  if(!items.length){ body.innerHTML=`<div class="col-state">${t("empty")}</div>`; return; }
-  body.innerHTML=items.map(it=>`<a class="card" href="${esc(it.url)}" target="_blank" rel="noopener">
-    <div class="card-top"><span class="src ${it.src}">${srcLabel(it.src)}</span>${it.time?`<span class="ago">${timeAgo(it.time)}</span>`:""}</div>
-    <div class="card-title">${esc(it.title)}</div>
-    ${it.snippet?`<div class="card-snip">${esc(it.snippet)}</div>`:""}
+  if(!items.length){ body.innerHTML=`<div class="col-state">${t("empty")}</div>`; setDist(col,[]); return; }
+  body.innerHTML=items.map((it,idx)=>`<a class="card" href="${esc(it.url)}" target="_blank" rel="noopener">
+    <div class="card-top"><span class="src ${it.src}">${srcLabel(it.src)}</span>${isSocial(it.src)?`<span class="hot">${t("hot")}</span>`:""}${it.author?`<span class="auth">@${esc(it.author)}</span>`:""}${it.time?`<span class="ago">${timeAgo(it.time)}</span>`:""}<span class="star ${isFav(it.url)?"on":""}" data-col="${col}" data-idx="${idx}" title="${t("save")}">${isFav(it.url)?"★":"☆"}</span></div>
+    <div class="card-title">${hl(it.title)}</div>
+    ${it.snippet?`<div class="card-snip">${hl(it.snippet)}</div>`:""}
     ${it.meta&&it.meta.length?`<div class="card-meta">${it.meta.filter(m=>m[1]!==""&&m[1]!=null).map(m=>`<span>${m[0]?metaIcon(m[0])+" ":""}${esc(m[1])}${m[0]?" "+t(m[0]):""}</span>`).join("")}</div>`:""}
   </a>`).join("");
-  body.scrollTop=0;
+  setDist(col,items); body.scrollTop=0;
 }
-function srcLabel(s){ return {hn:"HN",gh:"GitHub",hf:"HF",dev:"dev.to",arxiv:"arXiv",job:"HIRING",tele:"TELECOM",bsky:"Bluesky",masto:"Mastodon"}[s]||s; }
+function setDist(col,items){ const el=$(`#${col}-dist`); if(!el)return;
+  const cnt={}; items.forEach(it=>cnt[it.src]=(cnt[it.src]||0)+1);
+  el.textContent=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([s,n])=>`${srcLabel(s)} ${n}`).join("  ·  ");
+}
+// 星标点击（事件委托，col-body 持久存在）
+document.querySelectorAll(".col-body").forEach(b=>b.addEventListener("click",e=>{
+  const star=e.target.closest(".star"); if(!star)return; e.preventDefault(); e.stopPropagation();
+  const it=rendered[star.dataset.col] && rendered[star.dataset.col][+star.dataset.idx]; if(!it)return;
+  toggleFav(it,star.dataset.col); const on=isFav(it.url);
+  star.classList.toggle("on",on); star.textContent=on?"★":"☆";
+}));
+function srcLabel(s){ return {hn:"HN",gh:"GitHub",hf:"HF",dev:"dev.to",arxiv:"arXiv",job:"HIRING",tele:"TELECOM",bsky:"Bluesky",masto:"Mastodon",reddit:"Reddit"}[s]||s; }
 function metaIcon(k){ return {pts:"▲",cmt:"💬",star:"★",likes:"♥",dl:"⬇"}[k]||""; }
 
 async function loadCol(col,opts={}){
@@ -342,7 +381,7 @@ async function loadCol(col,opts={}){
   try{
     const items=await COLS[col](kw,range);
     cache[col]={items,ts:Date.now(),kw,range}; saveJSON(CACHE_KEY,cache);
-    renderCards(col,items); setMeta(col,items.length,Date.now());
+    renderCards(col,items); setMeta(col,items.length,Date.now()); updateRadar();
   }catch(e){
     if(cache[col]?.items?.length){ renderCards(col,cache[col].items); setMeta(col,cache[col].items.length,cache[col].ts,true); }
     else body.innerHTML=`<div class="col-state err">${t("error")}</div>`;
@@ -366,12 +405,37 @@ async function tryLoadSnapshot(){
     const d=await r.json(); if(d&&(d.news||d.tech||d.jobs)){ snapshot=d; snapMode=true; return; } }catch(e){}
   snapMode=false;
 }
+// ---------- 项目雷达 ----------
+const RADAR=["ZTE","VNPT","Open RAN"];
+const SEEN_KEY="aipulse_radar_seen"; let radarSeen=loadJSON(SEEN_KEY,{});
+function getAll(){ return snapMode&&snapshot ? [].concat(...Object.keys(COLS).map(c=>snapshot[c]||[]))
+  : [].concat(...Object.keys(COLS).map(c=>cache[c]?.items||[])); }
+function updateRadar(){
+  const all=getAll();
+  RADAR.forEach(term=>{ const tl=term.toLowerCase(), since=radarSeen[term]||0;
+    const n=all.filter(it=>(it.time||0)>since && ((it.title||"")+" "+(it.snippet||"")).toLowerCase().includes(tl)).length;
+    const chip=document.querySelector(`#chips .chip[data-kw="${term}"]`); if(!chip)return;
+    let b=chip.querySelector(".badge");
+    if(n>0){ if(!b){ b=document.createElement("span"); b.className="badge"; chip.appendChild(b); } b.textContent=n; }
+    else if(b) b.remove();
+  });
+}
+function markRadarSeen(term){ radarSeen[term]=Date.now(); saveJSON(SEEN_KEY,radarSeen); updateRadar(); }
+
+// ---------- 收藏视图 ----------
+let favView=false;
+function renderFavs(){
+  Object.keys(COLS).forEach(c=>{ const items=filterItems(Object.values(favs).filter(f=>f.col===c));
+    renderCards(c,items); $(`#${c}-meta`).textContent=`${items.length} · ${t("chipFav")}`; $(`#${c}-dist`).textContent=""; });
+}
+
 function renderSnapshot(){
-  const ts=snapshot?.meta?.generatedAt?new Date(snapshot.meta.generatedAt).getTime():Date.now();
+  const ts=snapshot&&snapshot.meta&&snapshot.meta.generatedAt?new Date(snapshot.meta.generatedAt).getTime():Date.now();
   Object.keys(COLS).forEach(c=>{ const items=filterItems(snapshot[c]||[]); renderCards(c,items);
     $(`#${c}-meta`).textContent=`${items.length} · ${t("daily")} ${fmtDate(ts)}`; });
+  updateRadar();
 }
-function applyFilter(){ if(snapMode) renderSnapshot(); else refreshAll(); }
+function applyFilter(){ if(favView) renderFavs(); else if(snapMode) renderSnapshot(); else refreshAll(); }
 
 async function refreshAll(){
   hiringThread=null; await tryLoadSnapshot();
@@ -385,7 +449,28 @@ $("#kw").addEventListener("keydown",e=>{ if(e.key==="Enter") applyFilter(); });
 $("#range").onchange=applyFilter;
 document.querySelectorAll(".rf").forEach(b=>b.onclick=()=>{ if(snapMode) renderSnapshot(); else loadCol(b.dataset.col); });
 $("#langBtn").onclick=()=>{ lang=lang==="zh"?"en":"zh"; localStorage.setItem(LANG_KEY,lang); applyLang();
-  if(snapMode) renderSnapshot(); else Object.keys(COLS).forEach(c=>{ if(cache[c])setMeta(c,cache[c].items.length,cache[c].ts); }); };
+  if(favView) renderFavs(); else if(snapMode) renderSnapshot(); else Object.keys(COLS).forEach(c=>{ if(cache[c])setMeta(c,cache[c].items.length,cache[c].ts); }); };
+
+// 主题
+let theme=localStorage.getItem("aipulse_theme")||"dark";
+function applyTheme(){ document.body.classList.toggle("light",theme==="light"); $("#themeBtn").textContent=theme==="light"?"🌙":"☀"; }
+$("#themeBtn").onclick=()=>{ theme=theme==="light"?"dark":"light"; localStorage.setItem("aipulse_theme",theme); applyTheme(); };
+
+// 今日简报（导出 Markdown）
+function makeBriefing(){
+  const src = snapMode&&snapshot ? snapshot : {news:cache.news?.items||[],tech:cache.tech?.items||[],jobs:cache.jobs?.items||[],tele:cache.tele?.items||[]};
+  const date=new Date().toLocaleDateString(lang==="zh"?"zh-CN":"en-US");
+  let md=`# ${t("briefTitle")} · ${date}\n\n`;
+  [["news","cNews"],["tech","cTech"],["jobs","cJobs"],["tele","cTele"]].forEach(([k,lab])=>{
+    const items=(src[k]||[]).slice(0,12); if(!items.length)return;
+    md+=`## ${t(lab)}\n\n`;
+    items.forEach(it=>{ md+=`- [${(it.title||"").replace(/\n/g," ")}](${it.url})${it.snippet?` — ${it.snippet.slice(0,90).replace(/\n/g," ")}`:""}\n`; });
+    md+="\n";
+  });
+  const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([md],{type:"text/markdown;charset=utf-8"}));
+  a.download=`aipulse-brief-${Date.now()}.md`; a.click(); toast(t("briefDone"));
+}
+$("#briefBtn").onclick=makeBriefing;
 
 let autoTimer=null;
 function setAuto(on){ cfg.auto=on; saveJSON(CFG_KEY,cfg); $("#autoBtn").classList.toggle("on",on);
@@ -411,12 +496,14 @@ function applyLang(){
 let srcFilter=null;   // 按来源筛选（如 social）
 function setActiveChip(el){ document.querySelectorAll("#chips .chip").forEach(c=>c.classList.toggle("active",c===el)); }
 document.querySelectorAll("#chips .chip").forEach(c=>c.onclick=()=>{
-  if(c.dataset.src){ srcFilter=c.dataset.src; $("#kw").value=""; }
-  else { srcFilter=null; $("#kw").value=c.dataset.kw||""; }
+  favView=false; srcFilter=null;
+  if(c.dataset.view==="fav"){ favView=true; $("#kw").value=""; }
+  else if(c.dataset.src){ srcFilter=c.dataset.src; $("#kw").value=""; }
+  else { $("#kw").value=c.dataset.kw||""; if(c.dataset.kw && RADAR.includes(c.dataset.kw)) markRadarSeen(c.dataset.kw); }
   setActiveChip(c); applyFilter();
 });
-$("#kw").addEventListener("input",()=>{ srcFilter=null; const v=$("#kw").value.trim().toLowerCase(); let m=null;
-  document.querySelectorAll("#chips .chip").forEach(c=>{ if(!c.dataset.src && c.dataset.kw.toLowerCase()===v) m=c; }); setActiveChip(m); });
+$("#kw").addEventListener("input",()=>{ favView=false; srcFilter=null; const v=$("#kw").value.trim().toLowerCase(); let m=null;
+  document.querySelectorAll("#chips .chip").forEach(c=>{ if(!c.dataset.src&&!c.dataset.view&&(c.dataset.kw||"").toLowerCase()===v) m=c; }); setActiveChip(m); });
 
 // ---------- 手机端主题标签 ----------
 let activeTab="news";
@@ -438,7 +525,7 @@ window.addEventListener("resize",applyTabs);
 
 // ---------- 启动 ----------
 function boot(){
-  applyLang(); setAuto(cfg.auto!==false);
+  applyLang(); applyTheme(); setAuto(cfg.auto!==false);
   // 先渲染缓存（离线/秒开），再联网刷新
   Object.keys(COLS).forEach(c=>{ if(cache[c]?.items){ renderCards(c,cache[c].items); setMeta(c,cache[c].items.length,cache[c].ts,true); } });
   applyTabs();
