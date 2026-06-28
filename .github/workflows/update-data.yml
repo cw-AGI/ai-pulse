@@ -22,7 +22,6 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: "22"
-          cache: "npm"
 
       - name: 抓取数据（Node 22 内置 fetch, 零依赖）
         run: node scripts/fetch-data.mjs
