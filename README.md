@@ -47,6 +47,18 @@ Manual full run: `./run-daily.sh` (= 820 + 830 back-to-back)
 
 Before 08:20, agents add web research to `curated/sea-telecom.json` — merged at fetch time.
 
+### Native-language sources (vi / km / zh)
+
+Auto-fetched and **translated to English** at 08:20 (DeepL or MyMemory):
+
+| Lang | Sources |
+|------|---------|
+| **Vietnamese** | VnExpress, Bao Dau Tu, BBC Tiếng Việt, Google News VI |
+| **Khmer** | AMS Economy, Post Khmer, Google News KH |
+| **Chinese** | VietnamPlus 中文, 联合早报/C114 via Google News CN |
+
+Cards show: English title + italic `title_orig` + `VI`/`KM`/`ZH` lang badge + source site tag.
+
 ## Curated intel (agent / web research)
 
 Automated fetch **plus** hand-picked items in `curated/sea-telecom.json` — merged every run.

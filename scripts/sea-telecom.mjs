@@ -1,6 +1,7 @@
 /** SEA Telecom pipeline — VN/KH × Huawei/Ericsson/Nokia/Samsung/ZTE */
 import {
-  VENDORS, COUNTRIES, LOCAL_FEEDS, GNEWS_QUERIES, SOCIAL_GNEWS_QUERIES, REDDIT_SUBS,
+  VENDORS, COUNTRIES, LOCAL_FEEDS, NATIVE_FEEDS, GNEWS_NATIVE,
+  GNEWS_QUERIES, SOCIAL_GNEWS_QUERIES, REDDIT_SUBS,
 } from "./sea-telecom-config.mjs";
 
 const DEEPL_KEY = process.env.DEEPL_AUTH_KEY || process.env.DEEPL_API_KEY || "";
@@ -58,6 +59,10 @@ export function matchesSeaFocus(item) {
     const telecomKw = /\b(5g|6g|telecom|telecommunications|open\s*ran|base\s*station|fiber\s*optic|vnpt|viettel|mobifone|vinaphone|cellcard|metfone|smart\s+axiata|seatel|huawei|ericsson|nokia|samsung|zte)\b/i;
     return hasVendor || telecomKw.test(blob);
   }
+  if (item.src?.startsWith("native-") && item.country) {
+    const telecomKw = /\b(5g|6g|telecom|mạng|viễn thông|华为|中兴|爱立信|诺基亚|三星|电信|基站|ăng-ten|trạm|cellcard|metfone|smart|huawei|ericsson|nokia|samsung|zte)\b/i;
+    return hasVendor || telecomKw.test(blob);
+  }
   return hasVendor && hasCountry;
 }
 
@@ -69,7 +74,7 @@ function socialSrcFromUrl(url) {
   return "gnews";
 }
 
-function parseFeed(xml, src, feedCountry = null) {
+function parseFeed(xml, src, feedCountry = null, forcedLang = null) {
   const out = [];
   const parts = xml.split(/<item[\s>]|<entry[\s>]/i).slice(1);
   for (const raw of parts) {
@@ -79,6 +84,7 @@ function parseFeed(xml, src, feedCountry = null) {
     const snippet = decode(pick(raw, "description") || pick(raw, "summary")).slice(0, 240);
     if (!title) continue;
     const cls = classifyText(`${title} ${snippet}`, feedCountry);
+    const lang = forcedLang || detectLang(`${title} ${snippet}`);
     out.push({
       src,
       title,
@@ -87,13 +93,16 @@ function parseFeed(xml, src, feedCountry = null) {
       snippet,
       meta: feedCountry ? [["country", feedCountry]] : [],
       ...cls,
-      lang: detectLang(`${title} ${snippet}`),
+      lang,
     });
   }
   return out;
 }
 
-function gnewsUrl(query) {
+function gnewsUrl(query, lang = "en") {
+  if (lang === "vi") return `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=vi&gl=VN&ceid=VN:vi`;
+  if (lang === "zh") return `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=zh-CN&gl=CN&ceid=CN:zh-Hans`;
+  if (lang === "km") return `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en&gl=KH&ceid=KH:en`;
   return `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`;
 }
 
@@ -119,7 +128,8 @@ async function translateDeepL(text, from) {
 }
 
 async function translateMyMemory(text, from) {
-  const pair = `${from}|en`;
+  const pairMap = { vi: "vi|en", zh: "zh-CN|en", km: "km|en" };
+  const pair = pairMap[from] || `${from}|en`;
   const r = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text.slice(0, 500))}&langpair=${pair}`);
   if (!r.ok) throw new Error(`MyMemory ${r.status}`);
   const d = await r.json();
@@ -174,6 +184,39 @@ export function makeFetchers(getText, getJSON) {
     return getJSON(url, {
       "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
     });
+  }
+
+  async function srcNativeFeeds() {
+    const cut = Date.now() - 14 * 86400 * 1000;
+    const feeds = NATIVE_FEEDS.filter(([, , , url]) => url);
+    const res = await Promise.allSettled(feeds.map(async ([name, country, lang, url]) => {
+      try {
+        const xml = await getText(url);
+        return parseFeed(xml, `native-${lang}`, country, lang).map(i => ({
+          ...i, source: name, sourceLabel: name, collectFrom: "native-rss",
+        }));
+      } catch (e) {
+        console.warn("native-feed", name, e.message);
+        return [];
+      }
+    }));
+    return res.flatMap(r => r.status === "fulfilled" ? r.value : [])
+      .filter(i => i.time > cut && matchesSeaFocus(i));
+  }
+
+  async function srcGNewsNative() {
+    const cut = Date.now() - 14 * 86400 * 1000;
+    const res = await Promise.allSettled(GNEWS_NATIVE.map(({ q, country, lang }) =>
+      getText(gnewsUrl(q, lang)).then(xml =>
+        parseFeed(xml, `native-${lang}`, country, lang).map(i => ({
+          ...i,
+          sourceLabel: lang === "zh" ? "Google News CN" : lang === "vi" ? "Google News VI" : "Google News",
+          collectFrom: "native-gnews",
+          meta: [["query", q.slice(0, 36)]],
+        })),
+      )));
+    return res.flatMap(r => r.status === "fulfilled" ? r.value : [])
+      .filter(i => i.time > cut && matchesSeaFocus(i));
   }
 
   async function srcLocalFeeds() {
@@ -259,15 +302,17 @@ export function makeFetchers(getText, getJSON) {
   }
 
   async function buildSeaTelecom() {
-    console.log("SEA telecom: fetching local + gnews + social + reddit…");
-    const [local, gnews, social, reddit] = await Promise.all([
+    console.log("SEA telecom: fetching local + native(vi/km/zh) + gnews + social + reddit…");
+    const [local, native, gnewsNative, gnews, social, reddit] = await Promise.all([
       srcLocalFeeds(),
+      srcNativeFeeds(),
+      srcGNewsNative(),
       srcGNews(GNEWS_QUERIES, false),
       srcGNews(SOCIAL_GNEWS_QUERIES, true),
       srcRedditSEA(),
     ]);
-    const raw = [...local, ...gnews, ...social, ...reddit];
-    console.log(`SEA telecom raw: local=${local.length} gnews=${gnews.length} social=${social.length} reddit=${reddit.length}`);
+    const raw = [...local, ...native, ...gnewsNative, ...gnews, ...social, ...reddit];
+    console.log(`SEA telecom raw: local=${local.length} native=${native.length} gnewsNative=${gnewsNative.length} gnews=${gnews.length} social=${social.length} reddit=${reddit.length}`);
     const enriched = await enrichEnglish(raw);
     return enriched.sort((a, b) => b.time - a.time);
   }

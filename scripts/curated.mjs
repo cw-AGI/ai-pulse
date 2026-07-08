@@ -2,7 +2,7 @@
 import { readFileSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { classifyText } from "./sea-telecom.mjs";
+import { classifyText, detectLang } from "./sea-telecom.mjs";
 
 const DIR = dirname(fileURLToPath(import.meta.url));
 const ROOT = existsSync(join(DIR, "data.json")) ? DIR : join(DIR, "..");
@@ -33,14 +33,17 @@ function normalizeCurated(it) {
   const time = it.time || (it.collectedAt ? Date.parse(it.collectedAt) : Date.now());
   const sourceLabel = it.sourceLabel || it.sourceSite || "Research";
   const collectFrom = it.collectFrom || "agent-research";
+  const lang = it.lang || (it.title_orig ? detectLang(it.title_orig) : "en");
 
   return {
     src: "curated",
     title: it.title,
+    title_orig: it.title_orig,
+    snippet_orig: it.snippet_orig,
     url: it.url,
     snippet: (it.snippet || "").slice(0, 240),
     time,
-    lang: "en",
+    lang,
     country,
     countries: (it.countries && it.countries.length) ? it.countries : (cls.countries.length ? cls.countries : (country ? [country] : [])),
     vendor,

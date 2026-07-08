@@ -5,7 +5,7 @@
       "required": ["title", "url", "country", "sourceLabel"],
       "optional": ["vendor", "snippet", "collectFrom", "collectedBy", "time"]
     },
-    "collectFromValues": ["web-search", "web-fetch", "agent-analysis", "pm-note"]
+    "collectFromValues": ["web-search", "web-fetch", "agent-analysis", "pm-note", "native-rss", "native-gnews"]
   },
   "items": [
     {
@@ -94,6 +94,134 @@
       "collectedBy": "cursor",
       "collectedAt": "2026-07-08T14:30:00Z",
       "time": 1782961686000
+    },
+    {
+      "title": "Vietnam 5G median speed tops 500 Mbps for the first time; Viettel leads at 617 Mbps",
+      "title_orig": "Mạng 5G Việt Nam lần đầu vượt 500 Mbps",
+      "url": "https://vnexpress.net/mang-5g-viet-nam-lan-dau-vuot-500-mbps-5045804.html",
+      "snippet": "VNNIC i-Speed Jan 2026: national 5G median 594.81 Mbps; Viettel 617 Mbps vs VNPT 311 Mbps and MobiFone 188 Mbps.",
+      "country": "VN",
+      "vendor": "Ericsson",
+      "lang": "vi",
+      "sourceLabel": "VnExpress",
+      "collectFrom": "web-search",
+      "collectedBy": "cursor",
+      "collectedAt": "2026-07-08T14:45:00Z",
+      "time": 1738368000000
+    },
+    {
+      "title": "Viettel targets 98% population 5G coverage; adds 20,000 sites in 2026",
+      "title_orig": "Viettel hướng tới phủ sóng 5G tới 98% dân số",
+      "url": "https://cms.bnews.vn/viettel-huong-toi-phu-song-5g-toi-98-dan-so/413275.html",
+      "snippet": "Deputy CEO Le Quang Hieu at MWC 2026: ~30,000 5G SA sites by end-2025; planning +20,000 in 2026 for 98% coverage.",
+      "country": "VN",
+      "vendor": null,
+      "lang": "vi",
+      "sourceLabel": "BNews",
+      "collectFrom": "web-search",
+      "collectedBy": "cursor",
+      "collectedAt": "2026-07-08T14:45:00Z",
+      "time": 1741449600000
+    },
+    {
+      "title": "Viettel to trial 6G in 2028 with Qualcomm strategic alliance",
+      "title_orig": "Viettel sẽ thử nghiệm 6G vào năm 2028",
+      "url": "https://vnexpress.net/viettel-se-thu-nghiem-6g-vao-nam-2028-5046197.html",
+      "snippet": "MWC 2026: Viettel joins Qualcomm 6G alliance; commercial 6G target from 2029; co-develop premium AI smartphones.",
+      "country": "VN",
+      "vendor": "Samsung",
+      "lang": "vi",
+      "sourceLabel": "VnExpress",
+      "collectFrom": "web-search",
+      "collectedBy": "cursor",
+      "collectedAt": "2026-07-08T14:45:00Z",
+      "time": 1741132800000
+    },
+    {
+      "title": "Vietnam pursues new 5G deals with China despite US warnings",
+      "title_orig": "Việt Nam nhắm thỏa thuận 5G mới với Trung Quốc, bất chấp cảnh báo của Mỹ",
+      "url": "https://www.bbc.com/vietnamese/articles/c89k5g20vewo",
+      "snippet": "BBC Vietnamese: Mobifone negotiating with Huawei; Viettel/VNPT already signed with ZTE and Huawei for 5G equipment.",
+      "country": "VN",
+      "vendor": "Huawei",
+      "vendors": ["Huawei", "ZTE"],
+      "lang": "vi",
+      "sourceLabel": "BBC Tiếng Việt",
+      "collectFrom": "web-search",
+      "collectedBy": "cursor",
+      "collectedAt": "2026-07-08T14:45:00Z",
+      "time": 1741276800000
+    },
+    {
+      "title": "Despite US warnings, Vietnam plans more 5G contracts with Chinese vendors",
+      "title_orig": "不顾美国警告 越南拟与中企签更多5G网络合约",
+      "url": "https://www.zaobao.com.sg/news/sea/story20260306-8690282",
+      "snippet": "Zaobao: Mobifone tender favors Chinese firms; Huawei 5G gear seen near US Consulate in HCMC; follows Viettel/VNPT ZTE/Huawei deals.",
+      "country": "VN",
+      "vendor": "Huawei",
+      "vendors": ["Huawei", "ZTE"],
+      "lang": "zh",
+      "sourceLabel": "联合早报",
+      "collectFrom": "web-search",
+      "collectedBy": "cursor",
+      "collectedAt": "2026-07-08T14:45:00Z",
+      "time": 1741276800000
+    },
+    {
+      "title": "Huawei and ZTE win 5G contracts in Vietnam; Ericsson and Nokia retain core",
+      "title_orig": "消息称华为中兴在越南斩获5G合同",
+      "url": "https://m.c114.com.cn/w16-1301263.html",
+      "snippet": "C114: Huawei $23M consortium deal; ZTE $20M+ antenna contracts; Nordic vendors on core; ~11,000 5G sites cover 26% population.",
+      "country": "VN",
+      "vendor": "Huawei",
+      "vendors": ["Huawei", "ZTE", "Ericsson", "Nokia"],
+      "lang": "zh",
+      "sourceLabel": "C114通信网",
+      "collectFrom": "web-search",
+      "collectedBy": "cursor",
+      "collectedAt": "2026-07-08T14:45:00Z",
+      "time": 1732809600000
+    },
+    {
+      "title": "Vietnam 5G mass deployment opens platform for app developers",
+      "title_orig": "越南5G大规模部署：为应用程序开发搭建新平台",
+      "url": "https://zh.vietnamplus.vn/article-post254729.vnp",
+      "snippet": "VietnamPlus Chinese: Viettel 30,000 5G sites, 90% outdoor coverage; Huawei expert praises fast 5G e-commerce adoption.",
+      "country": "VN",
+      "vendor": "Huawei",
+      "lang": "zh",
+      "sourceLabel": "VietnamPlus 中文",
+      "collectFrom": "web-search",
+      "collectedBy": "cursor",
+      "collectedAt": "2026-07-08T14:45:00Z",
+      "time": 1733673600000
+    },
+    {
+      "title": "Cambodia 5G trial: Cellcard leads download speeds in early Ookla tests",
+      "title_orig": "អ៊ីនធើណិត 5G សាកល្បងជំហានដំបូងនៅកម្ពុជា",
+      "url": "https://economy.ams.com.kh/news-startup-and-innovation/5g-internet-trial-in-cambodia-shows-cambodian-mobile-users-leading-the-way/",
+      "snippet": "AMS Khmer: Ookla trial shows Cellcard 548 Mbps, Smart 336 Mbps, Metfone 218 Mbps; 1,500+ 5G sites by March 2026.",
+      "country": "KH",
+      "vendor": null,
+      "lang": "km",
+      "sourceLabel": "AMS Economy",
+      "collectFrom": "web-search",
+      "collectedBy": "cursor",
+      "collectedAt": "2026-07-08T14:45:00Z",
+      "time": 1740787200000
+    },
+    {
+      "title": "Cellcard doubles 5G footprint to 500+ sites, targets 1,000 by end-July",
+      "url": "https://www.cellcard.com.kh/en/news/cellcard-double-5g-footprints-to-over-500-sites-set-to-double-again-to-more-than-1000-sites-by-end-july",
+      "snippet": "Cellcard CSX-listed operator: 500+ 5G BTS deployed since Jan 2026 launch; accelerating toward 1,000 sites across Phnom Penh and central region.",
+      "country": "KH",
+      "vendor": null,
+      "lang": "en",
+      "sourceLabel": "Cellcard",
+      "collectFrom": "web-search",
+      "collectedBy": "cursor",
+      "collectedAt": "2026-07-08T14:45:00Z",
+      "time": 1748217600000
     }
   ]
 }

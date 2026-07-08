@@ -68,6 +68,10 @@
   .src.gnews{background:rgba(66,133,244,.14);color:#7eb0ff}
   .src.local{background:rgba(46,160,130,.16);color:#5ecfaa}
   .src.curated{background:rgba(234,179,8,.16);color:#fbbf24}
+  .src.native-vi{background:rgba(239,68,68,.14);color:#f87171}
+  .src.native-km{background:rgba(59,130,246,.14);color:#60a5fa}
+  .src.native-zh{background:rgba(234,88,12,.14);color:#fb923c}
+  .tag-lang{font-size:9px;opacity:.9;background:rgba(255,255,255,.06)}
   .tag-source{background:rgba(234,179,8,.12);color:#fbbf24}
   .tag-collect{font-size:9px;opacity:.85}
   .card-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
@@ -400,8 +404,9 @@ function hl(text){ const kw=$("#kw").value.trim(); const e=esc(text); if(!kw) re
 function renderCardHtml(it,col,idx){
   const sourceBadge = it.sourceLabel ? `<span class="tag tag-source">${esc(it.sourceLabel)}</span>` : "";
   const collectBadge = it.collectFrom ? `<span class="tag tag-collect">${esc(it.collectFrom)}</span>` : "";
+  const langBadge = it.lang && it.lang!=="en" ? `<span class="tag tag-lang">${esc(it.lang.toUpperCase())}</span>` : "";
   return `<a class="card" href="${esc(it.url)}" target="_blank" rel="noopener">
-    <div class="card-top"><span class="src ${it.src}">${srcLabel(it.src)}</span>${countryTagHtml(it)}${sourceBadge}${collectBadge}${isSocial(it.src)?`<span class="hot">${t("hot")}</span>`:""}${it.author?`<span class="auth">@${esc(it.author)}</span>`:""}${it.time?`<span class="ago">${timeAgo(it.time)}</span>`:""}<span class="star ${isFav(it.url)?"on":""}" data-col="${col}" data-idx="${idx}" title="${t("save")}">${isFav(it.url)?"★":"☆"}</span></div>
+    <div class="card-top"><span class="src ${it.src}">${srcLabel(it.src)}</span>${countryTagHtml(it)}${sourceBadge}${langBadge}${collectBadge}${isSocial(it.src)?`<span class="hot">${t("hot")}</span>`:""}${it.author?`<span class="auth">@${esc(it.author)}</span>`:""}${it.time?`<span class="ago">${timeAgo(it.time)}</span>`:""}<span class="star ${isFav(it.url)?"on":""}" data-col="${col}" data-idx="${idx}" title="${t("save")}">${isFav(it.url)?"★":"☆"}</span></div>
     ${it.vendor?`<div class="card-tags"><span class="tag tag-vendor">${esc(it.vendor)}</span></div>`:""}
     <div class="card-title">${hl(it.title)}</div>
     ${it.title_orig?`<div class="card-orig">${hl(it.title_orig)}</div>`:""}
@@ -465,7 +470,7 @@ document.querySelectorAll(".col-body").forEach(b=>b.addEventListener("click",e=>
   toggleFav(it,star.dataset.col); const on=isFav(it.url);
   star.classList.toggle("on",on); star.textContent=on?"★":"☆";
 }));
-function srcLabel(s){ return {hn:"HN",gh:"GitHub",hf:"HF",dev:"dev.to",arxiv:"arXiv",job:"HIRING",tele:"TELECOM",bsky:"Bluesky",masto:"Mastodon",reddit:"Reddit",x:"X",facebook:"Facebook",gnews:"News",local:"Local",curated:"Curated"}[s]||s; }
+function srcLabel(s){ return {hn:"HN",gh:"GitHub",hf:"HF",dev:"dev.to",arxiv:"arXiv",job:"HIRING",tele:"TELECOM",bsky:"Bluesky",masto:"Mastodon",reddit:"Reddit",x:"X",facebook:"Facebook",gnews:"News",local:"Local",curated:"Curated","native-vi":"VI","native-km":"KH","native-zh":"中文"}[s]||s; }
 function metaIcon(k){ return {pts:"▲",cmt:"💬",star:"★",likes:"♥",dl:"⬇"}[k]||""; }
 
 async function loadCol(col,opts={}){

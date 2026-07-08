@@ -24,8 +24,10 @@ Edit `sea-telecom.json` → append to `items`:
 | Field | Meaning |
 |-------|---------|
 | `sourceLabel` | **Where the story was found** (Reuters, Developing Telecoms, …) — shown as UI badge |
-| `collectFrom` | How it was gathered: `web-search`, `web-fetch`, `agent-analysis`, `pm-note` |
-| `collectedBy` | Who added it: `cursor`, `claude`, `pm`, … |
+| `collectFrom` | How gathered: `web-search`, `native-rss`, `native-gnews`, `agent-analysis` |
+| `collectedBy` | Who added: `cursor`, `claude`, `pm` |
+| `title_orig` | Original headline in vi/km/zh (English in `title`) |
+| `lang` | `vi`, `km`, `zh`, or `en` |
 | `country` | `VN` or `KH` |
 | `vendor` | Huawei / Ericsson / Nokia / Samsung / ZTE (optional) |
 

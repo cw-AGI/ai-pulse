@@ -34,6 +34,30 @@ export const LOCAL_FEEDS = [
   ["The Phnom Penh Post", "KH", "https://www.phnompenhpost.com/rss"],
 ];
 
+/** Vietnamese / Khmer / Chinese native-language feeds → translated to EN at fetch */
+export const NATIVE_FEEDS = [
+  ["VnExpress VI", "VN", "vi", "https://vnexpress.net/rss/kinh-doanh.rss"],
+  ["Bao Dau Tu", "VN", "vi", "https://baodautu.vn/rss/home.rss"],
+  ["BBC Tieng Viet", "VN", "vi", "https://feeds.bbci.co.uk/vietnamese/rss.xml"],
+  ["VietnamPlus ZH", "VN", "zh", "https://zh.vietnamplus.vn/rss.vnp"],
+  ["AMS Economy KH", "KH", "km", "https://economy.ams.com.kh/feed/"],
+  ["Post Khmer", "KH", "km", "https://www.postkhmer.com/feed"],
+];
+
+/** Google News in vi / zh / km for VN & KH telecom */
+export const GNEWS_NATIVE = [
+  { q: "5G Viettel Huawei", country: "VN", lang: "vi" },
+  { q: "VNPT Ericsson 5G", country: "VN", lang: "vi" },
+  { q: "mạng 5G Việt Nam", country: "VN", lang: "vi" },
+  { q: "越南 5G 华为", country: "VN", lang: "zh" },
+  { q: "越南 Viettel 爱立信", country: "VN", lang: "zh" },
+  { q: "柬埔寨 5G Cellcard", country: "KH", lang: "zh" },
+  { q: "柬埔寨 5G 电信", country: "KH", lang: "zh" },
+  { q: "5G Cellcard កម្ពុជា", country: "KH", lang: "km" },
+  { q: "site:facebook.com 5G Viettel", country: "VN", lang: "vi" },
+  { q: "site:facebook.com 5G Cambodia", country: "KH", lang: "km" },
+];
+
 /** Google News RSS search templates (en). {vendor} {country} telecom */
 export const GNEWS_QUERIES = [];
 for (const v of VENDORS) {
