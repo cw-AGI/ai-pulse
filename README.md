@@ -28,9 +28,20 @@ python3 -m http.server 8766
 | Mode | How |
 |------|-----|
 | **GitHub Actions** | Auto-runs daily at 00:00 UTC → commits `data.json` |
-| **Local cron** | `scripts/run-daily.sh` |
+| **Local cron** | `scripts/run-daily.sh` (fetch + **Telegram** for VN/KH) |
 
-Optional translation (vi/km → en):
+### Telegram (Vietnam + Cambodia)
+
+On your Mac, after fetch, new headlines push via Hermes:
+
+```bash
+scripts/push-tele-telegram.sh
+scripts/run-daily.sh   # fetch + push
+```
+
+Uses `~/llm-workspace/bin/notify.sh` → `hermes send --to telegram`.  
+Dedup: `.tele-notify-state.json`. GitHub Actions does **not** send Telegram.
+
 
 ```bash
 export DEEPL_AUTH_KEY=your-key

@@ -9,3 +9,6 @@ cd "$ROOT"
 
 node scripts/fetch-data.mjs
 echo "[$(date -Iseconds)] data.json updated at $ROOT/data.json"
+
+# Vietnam / Cambodia telecom → Telegram (Hermes, local Mac only)
+"$ROOT/scripts/push-tele-telegram.sh"
