@@ -47,9 +47,10 @@ function buildMessage(items, generatedAt) {
     lines.push(`${COUNTRY_LABELS[code]} (${group.length})`);
     group.slice(0, MAX_PER_COUNTRY).forEach(it => {
       const vendor = it.vendor ? `[${it.vendor}] ` : "";
-      const src = srcLabel(it.src);
+      const src = it.src === "curated" ? (it.sourceLabel || "Curated") : srcLabel(it.src);
+      const via = it.collectFrom ? ` · ${it.collectFrom}` : "";
       lines.push(`• ${vendor}${clip(it.title, 100)}`);
-      lines.push(`  ${src} · ${it.url}`);
+      lines.push(`  ${src}${via} · ${it.url}`);
     });
     if (group.length > MAX_PER_COUNTRY) lines.push(`  … +${group.length - MAX_PER_COUNTRY} more`);
     lines.push("");

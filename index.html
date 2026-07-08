@@ -67,6 +67,9 @@
   .src.facebook{background:rgba(24,119,242,.16);color:#5a9fff}
   .src.gnews{background:rgba(66,133,244,.14);color:#7eb0ff}
   .src.local{background:rgba(46,160,130,.16);color:#5ecfaa}
+  .src.curated{background:rgba(234,179,8,.16);color:#fbbf24}
+  .tag-source{background:rgba(234,179,8,.12);color:#fbbf24}
+  .tag-collect{font-size:9px;opacity:.85}
   .card-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
   .tag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;letter-spacing:.3px;font-family:var(--mono)}
   .tag-country{background:rgba(59,130,196,.18);color:#6db0ee}
@@ -182,6 +185,7 @@
   <button class="chip tele" data-kw="Open RAN">Open RAN</button>
   <button class="chip tele" data-country="VN">Vietnam</button>
   <button class="chip tele" data-country="KH">Cambodia</button>
+  <button class="chip tele" data-src="curated">Curated</button>
   <button class="chip tele" data-vendor="Huawei">Huawei</button>
   <button class="chip tele" data-vendor="Ericsson">Ericsson</button>
   <button class="chip tele" data-vendor="Nokia">Nokia</button>
@@ -389,13 +393,15 @@ function countryTagHtml(it){
   return `<span class="tag ${cls}">${esc(countryLabel(c))}</span>`;
 }
 function itemText(it){
-  return [it.title,it.snippet,it.title_orig,it.snippet_orig,it.vendor,countryLabel(itemCountry(it)),itemCountry(it),(it.vendors||[]).join(" "),(it.countries||[]).join(" ")].filter(Boolean).join(" ");
+  return [it.title,it.snippet,it.title_orig,it.snippet_orig,it.vendor,countryLabel(itemCountry(it)),itemCountry(it),it.sourceLabel,it.collectFrom,(it.vendors||[]).join(" "),(it.countries||[]).join(" ")].filter(Boolean).join(" ");
 }
 function hl(text){ const kw=$("#kw").value.trim(); const e=esc(text); if(!kw) return e;
   return e.replace(new RegExp("("+kw.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+")","ig"),"<mark>$1</mark>"); }
 function renderCardHtml(it,col,idx){
+  const sourceBadge = it.sourceLabel ? `<span class="tag tag-source">${esc(it.sourceLabel)}</span>` : "";
+  const collectBadge = it.collectFrom ? `<span class="tag tag-collect">${esc(it.collectFrom)}</span>` : "";
   return `<a class="card" href="${esc(it.url)}" target="_blank" rel="noopener">
-    <div class="card-top"><span class="src ${it.src}">${srcLabel(it.src)}</span>${countryTagHtml(it)}${isSocial(it.src)?`<span class="hot">${t("hot")}</span>`:""}${it.author?`<span class="auth">@${esc(it.author)}</span>`:""}${it.time?`<span class="ago">${timeAgo(it.time)}</span>`:""}<span class="star ${isFav(it.url)?"on":""}" data-col="${col}" data-idx="${idx}" title="${t("save")}">${isFav(it.url)?"★":"☆"}</span></div>
+    <div class="card-top"><span class="src ${it.src}">${srcLabel(it.src)}</span>${countryTagHtml(it)}${sourceBadge}${collectBadge}${isSocial(it.src)?`<span class="hot">${t("hot")}</span>`:""}${it.author?`<span class="auth">@${esc(it.author)}</span>`:""}${it.time?`<span class="ago">${timeAgo(it.time)}</span>`:""}<span class="star ${isFav(it.url)?"on":""}" data-col="${col}" data-idx="${idx}" title="${t("save")}">${isFav(it.url)?"★":"☆"}</span></div>
     ${it.vendor?`<div class="card-tags"><span class="tag tag-vendor">${esc(it.vendor)}</span></div>`:""}
     <div class="card-title">${hl(it.title)}</div>
     ${it.title_orig?`<div class="card-orig">${hl(it.title_orig)}</div>`:""}
@@ -459,7 +465,7 @@ document.querySelectorAll(".col-body").forEach(b=>b.addEventListener("click",e=>
   toggleFav(it,star.dataset.col); const on=isFav(it.url);
   star.classList.toggle("on",on); star.textContent=on?"★":"☆";
 }));
-function srcLabel(s){ return {hn:"HN",gh:"GitHub",hf:"HF",dev:"dev.to",arxiv:"arXiv",job:"HIRING",tele:"TELECOM",bsky:"Bluesky",masto:"Mastodon",reddit:"Reddit",x:"X",facebook:"Facebook",gnews:"News",local:"Local"}[s]||s; }
+function srcLabel(s){ return {hn:"HN",gh:"GitHub",hf:"HF",dev:"dev.to",arxiv:"arXiv",job:"HIRING",tele:"TELECOM",bsky:"Bluesky",masto:"Mastodon",reddit:"Reddit",x:"X",facebook:"Facebook",gnews:"News",local:"Local",curated:"Curated"}[s]||s; }
 function metaIcon(k){ return {pts:"▲",cmt:"💬",star:"★",likes:"♥",dl:"⬇"}[k]||""; }
 
 async function loadCol(col,opts={}){
@@ -484,6 +490,7 @@ function filterItems(items){
   const kw=($("#kw").value.trim()||"").toLowerCase(), since=sinceTs($("#range").value);
   return (items||[]).filter(it=>{
     if(srcFilter==="social" && !isSocial(it.src)) return false;
+    if(srcFilter && srcFilter!=="social" && it.src!==srcFilter) return false;
     if(countryFilter && itemCountry(it)!==countryFilter && !(it.countries||[]).includes(countryFilter)) return false;
     if(vendorFilter && it.vendor!==vendorFilter && !(it.vendors||[]).includes(vendorFilter)) return false;
     if(kw && !itemText(it).toLowerCase().includes(kw)) return false;

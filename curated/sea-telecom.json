@@ -1,0 +1,99 @@
+{
+  "meta": {
+    "description": "Agent / web-research curated SEA telecom intel. Merged into tele column at fetch time.",
+    "schema": {
+      "required": ["title", "url", "country", "sourceLabel"],
+      "optional": ["vendor", "snippet", "collectFrom", "collectedBy", "time"]
+    },
+    "collectFromValues": ["web-search", "web-fetch", "agent-analysis", "pm-note"]
+  },
+  "items": [
+    {
+      "title": "Vietnam eyes new 5G deals with Chinese tech firms despite US warnings",
+      "url": "https://www.reuters.com/business/media-telecom/vietnam-eyes-new-5g-deals-with-chinese-tech-firms-sources-say-despite-us-2026-03-06/",
+      "snippet": "Mobifone in talks with Huawei; Viettel and VNPT signed 5G supply contracts with ZTE and Huawei. Ericsson and Nokia still supply core network.",
+      "country": "VN",
+      "vendor": "Huawei",
+      "vendors": ["Huawei", "ZTE"],
+      "sourceLabel": "Reuters",
+      "collectFrom": "web-search",
+      "collectedBy": "cursor",
+      "collectedAt": "2026-07-08T14:30:00Z",
+      "time": 1741276800000
+    },
+    {
+      "title": "Huawei and ZTE strengthen presence in Vietnam with new 5G network deal wins",
+      "url": "https://telecomlead.com/5g/huawei-and-zte-strengthen-presence-in-vietnam-with-new-5g-network-deal-wins-123656",
+      "snippet": "Huawei consortium ~$23M 5G equipment contract; Viettel targeting 20,000 new 5G base stations in 2025. 11,000+ stations deployed nationwide.",
+      "country": "VN",
+      "vendor": "Huawei",
+      "vendors": ["Huawei", "ZTE"],
+      "sourceLabel": "TelecomLead",
+      "collectFrom": "web-search",
+      "collectedBy": "cursor",
+      "collectedAt": "2026-07-08T14:30:00Z",
+      "time": 1744502400000
+    },
+    {
+      "title": "EU warns Vietnam: Chinese 5G vendors may deter foreign investment",
+      "url": "https://finance.yahoo.com/economy/policy/articles/chinese-firms-involvement-5g-network-082739783.html",
+      "snippet": "Ericsson and Nokia on core; Huawei and ZTE winning RAN/antenna contracts. EU Commissioner Sikela: 5G is the new battlefield for trusted vendors.",
+      "country": "VN",
+      "vendor": "Ericsson",
+      "vendors": ["Ericsson", "Nokia", "Huawei", "ZTE"],
+      "sourceLabel": "Reuters / Yahoo",
+      "collectFrom": "web-search",
+      "collectedBy": "cursor",
+      "collectedAt": "2026-07-08T14:30:00Z",
+      "time": 1742835600000
+    },
+    {
+      "title": "Huawei expands Vietnam footprint through energy, AI, and 5G partnerships",
+      "url": "https://www.digitimes.com/news/a20260622VL200/huawei-5g-industrial-infrastructure-digital-transformation.html",
+      "snippet": "Partnerships spanning digital energy, AI, telecom infrastructure and industrial digitalization in Vietnam.",
+      "country": "VN",
+      "vendor": "Huawei",
+      "sourceLabel": "DigiTimes",
+      "collectFrom": "web-search",
+      "collectedBy": "cursor",
+      "collectedAt": "2026-07-08T14:30:00Z",
+      "time": 1750550400000
+    },
+    {
+      "title": "Cambodia launches 5G as all three mobile operators switch on networks",
+      "url": "https://developingtelecoms.com/telecom-business/operator-news/19572-cambodia-launches-5g-as-all-three-mobile-operators-switch-on-networks.html",
+      "snippet": "Cellcard, Metfone and Smart launched 5G from Jan 2026. Phased rollout from Phnom Penh and 14 provinces.",
+      "country": "KH",
+      "vendor": null,
+      "sourceLabel": "Developing Telecoms",
+      "collectFrom": "web-search",
+      "collectedBy": "cursor",
+      "collectedAt": "2026-07-08T14:30:00Z",
+      "time": 1735689600000
+    },
+    {
+      "title": "1,500 5G base stations deployed in Cambodia's 5G race so far",
+      "url": "https://devtelecoms.com/telecom-technology/wireless-networks/19770-1-500-5g-base-stations-deployed-in-cambodias-5g-race-so-far.html",
+      "snippet": "Smart Axiata 674, Metfone (Viettel) 531, Cellcard 289 stations. Ministry accelerating mobile and FWA rollout.",
+      "country": "KH",
+      "vendor": null,
+      "sourceLabel": "Developing Telecoms",
+      "collectFrom": "web-search",
+      "collectedBy": "cursor",
+      "collectedAt": "2026-07-08T14:30:00Z",
+      "time": 1740009600000
+    },
+    {
+      "title": "Comin Asia and Nokia build sovereign AI infrastructure across Southeast Asia",
+      "url": "https://www.thefastmode.com/technology-solutions/49419-cambodias-comin-asia-nokia-build-sovereign-ai-infrastructure-across-southeast-asia",
+      "snippet": "AI-ready data centres planned for Cambodia and Laos; Nokia partnership for regional sovereign AI infrastructure.",
+      "country": "KH",
+      "vendor": "Nokia",
+      "sourceLabel": "The Fast Mode",
+      "collectFrom": "web-search",
+      "collectedBy": "cursor",
+      "collectedAt": "2026-07-08T14:30:00Z",
+      "time": 1782961686000
+    }
+  ]
+}
