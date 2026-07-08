@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 /* ============================================================
-   AIPulse 每日数据抓取（在 GitHub Actions 服务端运行，无跨域限制）
+   AIPulse 每日数据抓取（本地 cron 或 GitHub Actions，无跨域限制）
    零依赖（Node 20+ 内置 fetch）。聚合多源 → 写出同源 data.json。
-   输出条目结构与前端一致：{src,title,url,time(ms),snippet?,meta:[[key,val]]}
+   输出条目：{src,title,url,time(ms),snippet?,meta?,country?,vendor?,lang?,title_orig?}
+   通讯栏 SEA：越南+柬埔寨 × Huawei/Ericsson/Nokia/Samsung/ZTE + 社交发现
    ============================================================ */
 import { writeFileSync } from "node:fs";
+import { makeFetchers } from "./sea-telecom.mjs";
 
-const UA = "AIPulse/1.0 (+github actions; daily aggregator)";
+const UA = "AIPulse/3.1 (+local daily; sea-telecom)";
 const GH_TOKEN = process.env.GITHUB_TOKEN || "";
 
 // 关注的大类关键词（用于 HN / GitHub / 招聘过滤）
@@ -46,6 +48,11 @@ async function getJSON(url, headers = {}) {
     const r = await fetch(url, { headers: { "User-Agent": UA, "Accept": "application/json", ...headers }, signal });
     if (!r.ok) throw new Error(url + " -> " + r.status);
     return r.json();
+  });
+}
+async function getRedditJSON(url) {
+  return getJSON(url, {
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
   });
 }
 async function getText(url, headers = {}) {
@@ -215,14 +222,8 @@ async function srcBluesky(q, max = 15) {
 }
 async function srcMastodon(tag, max = 12) {
   try {
-    const d = await getJSON(`https://mastodon.social/api/v1/timelines/tag/${encodeURIComponent(tag)}?limit=20`);
-    return (d || []).filter(s => {
-      // 只保留 zh / en / 空(lang 未设置且文本像英文时放过)
-      const lang = (s.language || "").toLowerCase();
-      if (lang === "zh" || lang === "zh-cn" || lang === "zh-hans" || lang === "zh-hant" || lang === "en") return true;
-      if (lang && lang !== "en") return false;  // 其他明确语言(de/fr/ja/...)剔除
-      return true;  // lang 未设置,交给下游 isZhOrEn 过滤
-    }).map(s => { const text = decode(s.content || ""); if (!text) return null;
+    const d = await getJSON(`https://mastodon.social/api/v1/timelines/tag/${encodeURIComponent(tag)}?limit=${max}`);
+    return (d || []).map(s => { const text = decode(s.content || ""); if (!text) return null;
       return { src: "masto", title: text.length > 90 ? text.slice(0, 90) + "…" : text, author: s.account && s.account.acct,
         snippet: text.length > 90 ? text : "", url: s.url || s.uri, time: Date.parse(s.created_at) || Date.now(),
         meta: [["likes", s.favourites_count || 0], [null, "↻ " + (s.reblogs_count || 0)]] };
@@ -234,7 +235,7 @@ async function srcReddit(subs, max = 10) {
   const out = [];
   for (const sub of subs) {
     try {
-      const d = await getJSON(`https://www.reddit.com/r/${sub}/top.json?t=week&limit=${max}`);
+      const d = await getRedditJSON(`https://www.reddit.com/r/${sub}/top.json?t=week&limit=${max}`);
       (d.data && d.data.children || []).forEach(ch => { const p = ch.data; if (!p || p.stickied) return;
         out.push({ src: "reddit", title: p.title, author: "r/" + p.subreddit,
           snippet: (p.selftext || "").slice(0, 200), url: "https://www.reddit.com" + p.permalink,
@@ -245,34 +246,19 @@ async function srcReddit(subs, max = 10) {
   return out;
 }
 
+// ---------- SEA 通讯（VN/KH × 五厂商）----------
+const { buildSeaTelecom, matchesSeaFocus } = makeFetchers(getText, getJSON);
+
 // ---------- 合并 / 去重 / 截断 ----------
 function dedupe(items) {
   const seen = new Set();
   return items.filter(i => { const k = (i.url || i.title); if (!k || seen.has(k)) return false; seen.add(k); return true; });
 }
 
-// ---------- 语言过滤: 仅保留中文 / 英文 标题 ----------
-// 排除: 日韩泰阿拉伯西里尔 + 西欧扩展拉丁(葡/斯洛伐克/捷克/波兰/越南等)
-function isZhOrEn(text) {
-  if (!text) return false;
-  const hasZh = /[\u4e00-\u9fff]/.test(text);
-  const hasEn = /[a-zA-Z]/.test(text);
-  const hasJpKo = /[\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]/.test(text);  // 平假名/片假名/谚文
-  const hasCyrillic = /[\u0400-\u04ff]/.test(text);                          // 俄文等
-  const hasArabic = /[\u0600-\u06ff]/.test(text);                            // 阿拉伯文
-  const hasThai = /[\u0e00-\u0e7f]/.test(text);                              // 泰文
-  const hasVietnamese = /[\u01b0\u1ea0-\u1ef9\u0300-\u036f]/.test(text);    // 越南语 (ă ế ộ 等)
-  // 西欧/东欧扩展拉丁 (á à č ď ě ň ř š ť ů ž 等) — 排除葡/斯/捷/波/匈等
-  const hasExtendedLatin = /[\u00c0-\u024f\u1e00-\u1eff\u0100-\u017f]/.test(text);
-  // 必须含中/英其一,且不含其他语系字符
-  return (hasZh || hasEn) && !hasJpKo && !hasCyrillic && !hasArabic && !hasThai
-                          && !hasVietnamese && !hasExtendedLatin;
-}
-const filt = items => items.filter(it => isZhOrEn(it.title));
-
 (async () => {
-  const [hn, dev, arxiv, feeds, gh, hf, jobs, teleFeeds, teleHN, bskyAI, bskyTele, mastoAI, mastoTele, redditAI, redditTele] = await Promise.all([
+  const [hn, dev, arxiv, feeds, gh, hf, jobs, teleFeeds, teleHN, teleSea, bskyAI, bskyTele, mastoAI, mastoTele, redditAI, redditTele] = await Promise.all([
     srcHNStories(), srcDevto(), srcArxiv(), srcFeeds(), srcGitHub(), srcHF(), srcJobs(), srcTelecomFeeds(), srcTelecomHN(),
+    buildSeaTelecom(),
     Promise.all([srcBluesky("AI"), srcBluesky("LLM")]).then(a => a.flat()),
     Promise.all([srcBluesky("5G"), srcBluesky("telecom")]).then(a => a.flat()),
     Promise.all([srcMastodon("AI"), srcMastodon("MachineLearning")]).then(a => a.flat()),
@@ -280,15 +266,23 @@ const filt = items => items.filter(it => isZhOrEn(it.title));
     srcReddit(["MachineLearning", "LocalLLaMA", "artificial"]),
     srcReddit(["telecom", "networking"])
   ]);
-  const news = filt(dedupe([...hn, ...dev, ...arxiv, ...feeds, ...bskyAI, ...mastoAI, ...redditAI])).sort((a, b) => b.time - a.time).slice(0, 90);
-  const tech = filt(dedupe([...gh, ...hf])).slice(0, 50);
-  const jobsList = filt(dedupe(jobs)).sort((a, b) => b.time - a.time).slice(0, 45);
-  const telecom = filt(dedupe([...teleFeeds, ...teleHN, ...bskyTele, ...mastoTele, ...redditTele])).sort((a, b) => b.time - a.time).slice(0, 80);
+  const news = dedupe([...hn, ...dev, ...arxiv, ...feeds, ...bskyAI, ...mastoAI, ...redditAI]).sort((a, b) => b.time - a.time).slice(0, 90);
+  const tech = dedupe([...gh, ...hf]).slice(0, 50);
+  const jobsList = dedupe(jobs).sort((a, b) => b.time - a.time).slice(0, 45);
+  const teleGlobal = dedupe([...teleFeeds, ...teleHN, ...bskyTele, ...mastoTele, ...redditTele])
+    .filter(i => matchesSeaFocus(i));
+  const telecom = dedupe([...teleSea, ...teleGlobal]).sort((a, b) => b.time - a.time).slice(0, 120);
 
-  const data = { meta: { generatedAt: new Date().toISOString(), keywords: NEWS_QUERIES,
-      counts: { news: news.length, tech: tech.length, jobs: jobsList.length, tele: telecom.length } },
-    news, tech, jobs: jobsList, tele: telecom };
+  const data = {
+    meta: {
+      generatedAt: new Date().toISOString(),
+      keywords: NEWS_QUERIES,
+      seaTelecom: { countries: ["VN", "KH"], vendors: ["Huawei", "Ericsson", "Nokia", "Samsung", "ZTE"], translate: !!(process.env.DEEPL_AUTH_KEY || process.env.DEEPL_API_KEY) },
+      counts: { news: news.length, tech: tech.length, jobs: jobsList.length, tele: telecom.length },
+    },
+    news, tech, jobs: jobsList, tele: telecom,
+  };
 
   writeFileSync("data.json", JSON.stringify(data, null, 0));
-  console.log(`data.json written: news=${news.length} tech=${tech.length} jobs=${jobsList.length} tele=${telecom.length}`);
+  console.log(`data.json written: news=${news.length} tech=${tech.length} jobs=${jobsList.length} tele=${telecom.length} (sea=${teleSea.length})`);
 })().catch(e => { console.error("FATAL", e); process.exit(1); });
