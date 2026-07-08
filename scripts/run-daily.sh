@@ -1,11 +1,8 @@
 #!/usr/bin/env bash
-# AIPulse daily fetch — run once per day (cron / launchd)
+# AIPulse daily — manual full run (fetch + GitHub + Telegram)
 set -euo pipefail
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-cd "$ROOT"
+DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$DIR"
 
-# Optional: export DEEPL_AUTH_KEY=your-key  (recommended for vi/km → en)
-# Optional: export AIPULSE_TRANSLATE_MAX=50
-
-node scripts/fetch-data.mjs
-echo "[$(date -Iseconds)] data.json updated at $ROOT/data.json"
+./run-morning-820.sh
+./run-morning-830.sh

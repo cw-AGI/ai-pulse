@@ -1,52 +1,118 @@
 # AIPulse v3.1 — SEA Telecom Watch
 
-AI + telecom intelligence dashboard. **Live:** https://cw-agi.github.io/ai-pulse/
+Local-first daily aggregator for **Vietnam + Cambodia** telecom news across **Huawei, Ericsson, Nokia, Samsung, ZTE**.
 
-## Features
-
-- **AI Frontier / Tech / Jobs** — aggregated from HN, GitHub, HF, dev.to, arXiv, etc.
-- **Telecom (SEA)** — Vietnam + Cambodia × Huawei / Ericsson / Nokia / Samsung / ZTE
-- Country tabs, vendor chips, bilingual cards (EN primary + original subtitle)
-- Social discovery: Reddit, X, Facebook (via Google News `site:`)
-
-## Local dev
+## Quick start
 
 ```bash
-git clone https://github.com/cw-AGI/ai-pulse.git
-cd ai-pulse
+cd "/Users/cw/llm-workspace/个人工具箱/AI news fetch"
 
-# Fetch once (writes data.json at repo root)
-node scripts/fetch-data.mjs
+# Fetch once (writes data.json)
+node fetch-data.mjs
+# or
+./run-daily.sh
 
-# Preview
+# View
 python3 -m http.server 8766
-# → http://127.0.0.1:8766/
+# open http://127.0.0.1:8766/
 ```
 
-## Daily update
+## Daily schedule (automatic)
 
-| Mode | How |
-|------|-----|
-| **GitHub Actions** | Auto-runs daily at 00:00 UTC → commits `data.json` |
-| **Local cron** | `scripts/run-daily.sh` |
+**Vietnam time (Mac local clock = ICT):**
 
-Optional translation (vi/km → en):
+| Time | Script | Action |
+|------|--------|--------|
+| **08:20** | `run-morning-820.sh` | Fetch RSS + curated → `data.json` → **push GitHub** |
+| **08:30** | `run-morning-830.sh` | Push **new** VN/KH items → **Telegram** (Hermes) |
+
+One-time install (macOS launchd):
 
 ```bash
-export DEEPL_AUTH_KEY=your-key
-node scripts/fetch-data.mjs
+./install-schedule.sh
 ```
 
-Add `DEEPL_AUTH_KEY` as a GitHub Actions secret for server-side translation.
+Log: `/tmp/aipulse-morning.log`
+
+Manual full run: `./run-daily.sh` (= 820 + 830 back-to-back)
+
+### crontab alternative
+
+```bash
+20 8 * * * /Users/cw/llm-workspace/个人工具箱/AI\ news\ fetch/run-morning-820.sh
+30 8 * * * /Users/cw/llm-workspace/个人工具箱/AI\ news\ fetch/run-morning-830.sh
+```
+
+### Agent curated intel
+
+Before 08:20, agents add web research to `curated/sea-telecom.json` — merged at fetch time.
+
+## Curated intel (agent / web research)
+
+Automated fetch **plus** hand-picked items in `curated/sea-telecom.json` — merged every run.
+
+- UI badge: **Curated** + source site (Reuters, Developing Telecoms, …)
+- `collectFrom`: `web-search`, `web-fetch`, `agent-analysis`
+- See `curated/README.md` for how agents add entries
+
+
+Non-English titles/snippets are translated to **English** at fetch time. English sources are kept as-is; originals are stored in `title_orig` / `snippet_orig`.
+
+| Provider | Env var | Notes |
+|----------|---------|-------|
+| **DeepL** (recommended) | `DEEPL_AUTH_KEY` | Best for Vietnamese |
+| **MyMemory** (fallback) | — | Free, no key; used when DeepL absent |
+
+```bash
+export DEEPL_AUTH_KEY=your-deepl-free-key
+export AIPULSE_TRANSLATE_MAX=50   # optional cap per run
+node fetch-data.mjs
+```
+
+## Sources (telecom column)
+
+| Type | Coverage |
+|------|----------|
+| **Local RSS** | VnExpress Int'l, Vietnam News, Khmer Times, Phnom Penh Post |
+| **Google News** | Vendor × country matrix (EN queries) |
+| **Social discovery** | Reddit, X, Facebook via `site:` Google News RSS (no API keys) |
+| **Reddit** | r/VietNam, r/cambodia, r/telecom, … filtered by vendor+country |
+| **Global telecom** | RCR, Light Reading, HN, Bluesky, Mastodon (SEA-matched only) |
+
+> **Facebook / X**: Direct APIs require keys or paid access. Phase 1 uses Google News `site:` discovery — coverage is partial but zero-config.
+
+## Data fields (tele items)
+
+```json
+{
+  "src": "local|gnews|reddit|x|facebook|hn|…",
+  "title": "English headline",
+  "title_orig": "Vietnamese original (if translated)",
+  "snippet": "English summary",
+  "country": "VN",
+  "vendor": "Huawei",
+  "lang": "vi",
+  "url": "…",
+  "time": 1710000000000
+}
+```
+
+## UI filters
+
+- **Country chips**: Vietnam, Cambodia
+- **Vendor chips**: Huawei, Ericsson, Nokia, Samsung, ZTE
+- **Social hot**: Reddit, X, Facebook, Bluesky, Mastodon
+- Cards show **English primary** + italic original subtitle
 
 ## Files
 
-| Path | Role |
+| File | Role |
 |------|------|
-| `index.html` | Frontend (GitHub Pages entry) |
-| `data.json` | Daily snapshot |
-| `scripts/fetch-data.mjs` | Main aggregator |
-| `scripts/sea-telecom-config.mjs` | VN/KH feeds, vendor matrix |
-| `scripts/sea-telecom.mjs` | Classification + translation |
-| `scripts/run-daily.sh` | Local cron wrapper |
-| `.github/workflows/update-data.yml` | Daily fetch workflow |
+| `fetch-data.mjs` | Main aggregator |
+| `sea-telecom-config.mjs` | VN/KH feeds, vendor matrix, queries |
+| `sea-telecom.mjs` | Classification, translation, SEA pipeline |
+| `run-daily.sh` | Cron wrapper (fetch + Telegram) |
+| `push-tele-telegram.mjs` | Format VN/KH items for Telegram |
+| `push-tele-telegram.sh` | Send via Hermes (`notify.sh`) |
+| `data.json` | Daily snapshot (generated) |
+| `index.html` | Frontend |
