@@ -23,4 +23,4 @@ node_modules/
 .idea/
 *.swp
 *.swo
-.DS_Store
+.DS_Store.tele-notify-state.json

@@ -7,6 +7,7 @@
    ============================================================ */
 import { writeFileSync } from "node:fs";
 import { makeFetchers } from "./sea-telecom.mjs";
+import { loadCuratedSea, mergeCuratedIntoTele } from "./curated.mjs";
 
 const UA = "AIPulse/3.1 (+local daily; sea-telecom)";
 const GH_TOKEN = process.env.GITHUB_TOKEN || "";
@@ -271,18 +272,28 @@ function dedupe(items) {
   const jobsList = dedupe(jobs).sort((a, b) => b.time - a.time).slice(0, 45);
   const teleGlobal = dedupe([...teleFeeds, ...teleHN, ...bskyTele, ...mastoTele, ...redditTele])
     .filter(i => matchesSeaFocus(i));
-  const telecom = dedupe([...teleSea, ...teleGlobal]).sort((a, b) => b.time - a.time).slice(0, 120);
+  const curated = loadCuratedSea();
+  const teleMerged = mergeCuratedIntoTele(
+    dedupe([...teleSea, ...teleGlobal]).sort((a, b) => b.time - a.time),
+    curated,
+  );
+  const telecom = teleMerged.slice(0, 140);
 
   const data = {
     meta: {
       generatedAt: new Date().toISOString(),
       keywords: NEWS_QUERIES,
-      seaTelecom: { countries: ["VN", "KH"], vendors: ["Huawei", "Ericsson", "Nokia", "Samsung", "ZTE"], translate: !!(process.env.DEEPL_AUTH_KEY || process.env.DEEPL_API_KEY) },
+      seaTelecom: {
+        countries: ["VN", "KH"],
+        vendors: ["Huawei", "Ericsson", "Nokia", "Samsung", "ZTE"],
+        translate: !!(process.env.DEEPL_AUTH_KEY || process.env.DEEPL_API_KEY),
+        curated: curated.length,
+      },
       counts: { news: news.length, tech: tech.length, jobs: jobsList.length, tele: telecom.length },
     },
     news, tech, jobs: jobsList, tele: telecom,
   };
 
   writeFileSync("data.json", JSON.stringify(data, null, 0));
-  console.log(`data.json written: news=${news.length} tech=${tech.length} jobs=${jobsList.length} tele=${telecom.length} (sea=${teleSea.length})`);
+  console.log(`data.json written: news=${news.length} tech=${tech.length} jobs=${jobsList.length} tele=${telecom.length} (sea=${teleSea.length} curated=${curated.length})`);
 })().catch(e => { console.error("FATAL", e); process.exit(1); });
