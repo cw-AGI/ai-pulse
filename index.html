@@ -5,54 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AIPulse · AI 情报落地页</title>
 <style>
-  /* ============================================================
-     统一 Design Token (AIPulse + GMI 共用)
-     主题: 深色玻璃风 + 等宽数字 + 蓝青主色
-     ============================================================ */
   :root{
-    /* — 背景层 — */
-    --bg:        #0a0d12;          /* 最底层: 接近黑蓝灰 */
-    --bg-2:      #11161e;          /* 次底层: topbar 等 */
-    --panel:     #141a23;          /* 卡片底 */
-    --panel-2:   #1a222d;          /* 卡片 hover / 二级面板 */
-    --glass:     rgba(255,255,255,0.035);  /* 玻璃面板 */
-    --glass-2:   rgba(255,255,255,0.06);
-    /* — 边线 — */
-    --border:        rgba(255,255,255,0.08);
-    --border-soft:   rgba(255,255,255,0.05);
-    --border-strong: rgba(255,255,255,0.14);
-    /* — 文字 — */
-    --text:    #e6edf3;
-    --muted:   #8b949e;
-    --faint:   #566374;
-    /* — 品牌色 — */
-    --accent:      #4493f8;        /* 主蓝 */
-    --accent-soft: rgba(68,147,248,0.14);
-    --cyan:        #39d3c3;        /* 青绿(脉冲/高亮) */
-    --amber:       #f5a623;        /* 暖橙(点缀) */
-    --teal:        #2dd4bf;        /* 偏冷青(辅助) */
-    /* — 数据源徽章色 — */
-    --hn: #ff7a18;  --gh: #c9d1d9;  --hf: #ffcc4d;
-    --dev: #cbd5e1; --job: #5bd66f; --arxiv: #ff8090;
-    --tele: #6db0ee; --bsky: #4aa8ff; --masto: #8c8dff; --reddit: #ff7a45;
-    /* — 涨跌幅 (中文习惯: 红涨绿跌) — */
-    --up:   #ef4444;
-    --down: #22c55e;
-    /* — 圆角 — */
-    --r-sm: 6px;  --r-md: 9px;  --r-lg: 12px;  --r-xl: 16px;
-    /* — 阴影 — */
-    --shadow-sm: 0 4px 12px rgba(0,0,0,0.3);
-    --shadow-md: 0 8px 24px rgba(0,0,0,0.4);
-    --shadow-lg: 0 16px 40px rgba(0,0,0,0.5);
-    /* — 字体 — */
-    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", Roboto, sans-serif;
+    --bg:#0e1116;--panel:#161b22;--panel-2:#1c232c;--border:#262d38;--border-soft:#1f2630;
+    --text:#e6edf3;--muted:#8b949e;--accent:#4493f8;--accent-soft:rgba(68,147,248,.14);--cyan:#39d3c3;
+    --hn:#ff7a18;--gh:#c9d1d9;--hf:#ffcc4d;--dev:#cbd5e1;--job:#5bd66f;
+    --radius:11px;--shadow:0 8px 30px rgba(0,0,0,.5);
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;-webkit-font-smoothing:antialiased}
   body{display:flex;flex-direction:column;height:100vh;overflow:hidden}
 
-  .topbar{flex:none;display:flex;align-items:center;gap:9px;padding:11px 14px;background:linear-gradient(180deg,var(--bg-2),var(--bg));border-bottom:1px solid var(--border);flex-wrap:wrap;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+  .topbar{flex:none;display:flex;align-items:center;gap:9px;padding:11px 14px;background:var(--panel);border-bottom:1px solid var(--border);flex-wrap:wrap}
   .brand{display:flex;align-items:center;gap:9px;font-weight:700;white-space:nowrap}
   .brand .dot{width:11px;height:11px;border-radius:50%;background:var(--cyan);box-shadow:0 0 12px var(--cyan);animation:p 2s infinite}
   @keyframes p{0%,100%{opacity:.5}50%{opacity:1}}
@@ -98,6 +63,28 @@
   .src.tele{background:rgba(59,130,196,.18);color:#6db0ee}
   .src.bsky{background:rgba(0,133,255,.16);color:#4aa8ff} .src.masto{background:rgba(99,100,255,.16);color:#8c8dff}
   .src.reddit{background:rgba(255,69,0,.16);color:#ff7a45}
+  .src.x{background:rgba(29,155,240,.16);color:#4db8ff}
+  .src.facebook{background:rgba(24,119,242,.16);color:#5a9fff}
+  .src.gnews{background:rgba(66,133,244,.14);color:#7eb0ff}
+  .src.local{background:rgba(46,160,130,.16);color:#5ecfaa}
+  .card-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+  .tag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;letter-spacing:.3px;font-family:var(--mono)}
+  .tag-country{background:rgba(59,130,196,.18);color:#6db0ee}
+  .tag-vn{background:rgba(218,41,28,.18);color:#f87171}
+  .tag-kh{background:rgba(37,99,235,.18);color:#60a5fa}
+  .tag-vendor{background:rgba(168,85,247,.16);color:#c084fc}
+  .tele-countries{flex:none;display:flex;gap:6px;padding:8px 12px;border-bottom:1px solid var(--border);background:var(--panel);overflow-x:auto}
+  .tele-ctab{flex:none;height:28px;padding:0 12px;border-radius:14px;border:1px solid var(--border);background:var(--panel-2);color:var(--muted);font-size:12px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;transition:.13s}
+  .tele-ctab:hover{border-color:#3b4356;color:var(--text)}
+  .tele-ctab.active{background:rgba(59,130,196,.16);border-color:rgba(59,130,196,.55);color:#6db0ee;font-weight:600}
+  .tele-ctab .cnt{min-width:16px;padding:0 5px;border-radius:8px;background:rgba(255,255,255,.08);font-size:10px;font-family:var(--mono)}
+  .tele-ctab.active .cnt{background:rgba(59,130,196,.35)}
+  .country-section{margin-bottom:4px}
+  .country-h{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:8px;padding:8px 4px 6px;margin-bottom:4px;font-size:12px;font-weight:700;letter-spacing:.2px;color:var(--muted);background:var(--bg);border-bottom:1px solid var(--border-soft)}
+  .country-h .flag{font-size:14px;line-height:1}
+  .country-h .cnt{margin-left:auto;font-size:10px;font-family:var(--mono);padding:1px 7px;border-radius:8px;background:var(--panel-2)}
+  .country-h.vn{color:#f87171}.country-h.kh{color:#60a5fa}
+  .card-orig{font-size:11.5px;line-height:1.45;color:var(--muted);margin-top:5px;font-style:italic;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .dist{display:block;font-size:10.5px;color:var(--muted);font-family:var(--mono);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .hot{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.4px;padding:1px 6px;border-radius:5px;background:rgba(255,77,128,.18);color:#ff6b9d}
   .card .auth{font-size:11px;color:var(--muted);font-family:var(--mono)}
@@ -162,7 +149,7 @@
 </head>
 <body>
 <div class="topbar">
-  <div class="brand"><span class="dot"></span>AIPulse <small>v3.0</small></div>
+  <div class="brand"><span class="dot"></span>AIPulse <small>v3.1</small></div>
   <div class="search">
     <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
     <input id="kw" placeholder="关键词筛选（留空=全部，如 LLM / RAG / 5G）…" value="" autocomplete="off">
@@ -193,7 +180,13 @@
   <button class="chip tele" data-kw="5G">5G</button>
   <button class="chip tele" data-kw="6G">6G</button>
   <button class="chip tele" data-kw="Open RAN">Open RAN</button>
-  <button class="chip tele" data-kw="ZTE">ZTE</button>
+  <button class="chip tele" data-country="VN">Vietnam</button>
+  <button class="chip tele" data-country="KH">Cambodia</button>
+  <button class="chip tele" data-vendor="Huawei">Huawei</button>
+  <button class="chip tele" data-vendor="Ericsson">Ericsson</button>
+  <button class="chip tele" data-vendor="Nokia">Nokia</button>
+  <button class="chip tele" data-vendor="Samsung">Samsung</button>
+  <button class="chip tele" data-vendor="ZTE">ZTE</button>
   <button class="chip tele" data-kw="VNPT">VNPT</button>
   <button class="chip tele" data-kw="Starlink">Starlink</button>
   <button class="chip tele" data-kw="fiber">Fiber</button>
@@ -229,6 +222,11 @@
     <div class="col-h"><span class="ic" style="background:#3b82c4"><svg viewBox="0 0 24 24"><path d="M5 12.5a7 7 0 0 1 14 0"/><path d="M2 9a11 11 0 0 1 20 0"/><line x1="12" y1="16" x2="12" y2="21"/><circle cx="12" cy="13" r="1.5"/></svg></span>
       <div class="ti"><b data-i18n="cTele">通讯行业</b><span id="tele-meta">—</span><span class="dist" id="tele-dist"></span></div>
       <button class="rf" data-col="tele"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button></div>
+    <div class="tele-countries" id="tele-countries">
+      <button class="tele-ctab active" data-tele-ct="" data-i18n="teleAll">All</button>
+      <button class="tele-ctab" data-tele-ct="VN"><span class="flag">🇻🇳</span><span data-i18n="cVietnam">Vietnam</span><span class="cnt" id="tele-cnt-vn">0</span></button>
+      <button class="tele-ctab" data-tele-ct="KH"><span class="flag">🇰🇭</span><span data-i18n="cCambodia">Cambodia</span><span class="cnt" id="tele-cnt-kh">0</span></button>
+    </div>
     <div class="col-body" id="tele-body"></div>
   </div>
 </div>
@@ -237,12 +235,12 @@
   <div class="modal-card">
     <h3 data-i18n="setTitle">设置</h3>
     <div class="fld"><div class="tog"><label class="toggle" id="liveToggle"><span class="sw"></span><span data-i18n="liveLbl">强制实时抓取（忽略 data.json）</span></label></div>
-      <div class="hintsm" data-i18n="liveHint">关闭时优先读取每天由 GitHub Actions 生成的同源 data.json；找不到才用浏览器直连。</div></div>
+      <div class="hintsm" data-i18n="liveHint">关闭时优先读取本地每日抓取的 data.json；找不到才用浏览器直连。</div></div>
     <div class="fld"><div class="tog"><label class="toggle" id="arxivToggle"><span class="sw"></span><span data-i18n="arxivLbl">启用 arXiv 论文源（前沿栏）</span></label></div>
       <div class="hintsm" data-i18n="arxivHint">arXiv 不支持跨域，需经公共代理，可能较慢或偶尔失败。</div></div>
     <div class="fld"><label data-i18n="proxyLbl">CORS 代理地址（用于 arXiv）</label>
       <input id="proxyUrl" value="https://api.allorigins.win/raw?url=" placeholder="https://…/?url=">
-      <div class="hintsm" data-i18n="proxyHint">代理会拼在目标 URL 前。生产环境建议改用 GitHub Actions 定时抓取写入同源 data.json。</div></div>
+      <div class="hintsm" data-i18n="proxyHint">代理会拼在目标 URL 前。通讯栏建议本地每日运行 run-daily.sh 生成 data.json。</div></div>
     <div class="modal-foot"><button class="btn" id="setClose" data-i18n="close">关闭</button></div>
   </div>
 </div>
@@ -262,20 +260,22 @@ const I18N={
    cNews:"AI 前沿",cTech:"技术栈",cJobs:"招聘岗位",cTele:"通讯行业",setTitle:"设置",chipAll:"全部",chipSocial:"社交热帖",chipFav:"★ 收藏",
    hot:"热帖",save:"收藏",briefTip:"导出今日简报",themeTip:"切换主题",briefTitle:"今日情报简报",briefDone:"简报已导出",
    arxivLbl:"启用 arXiv 论文源（前沿栏）",arxivHint:"arXiv 不支持跨域，需经公共代理，可能较慢或偶尔失败。",
-   proxyLbl:"CORS 代理地址（用于 arXiv）",proxyHint:"代理会拼在目标 URL 前。生产环境建议改用 GitHub Actions 定时抓取写入同源 data.json。",
+   proxyLbl:"CORS 代理地址（用于 arXiv）",proxyHint:"代理会拼在目标 URL 前。通讯栏建议本地每日运行 run-daily.sh 生成 data.json。",
    close:"关闭",loading:"加载中…",empty:"暂无结果，换个关键词或时间范围",error:"加载失败（可能被限流/跨域），显示上次缓存",
    updated:"更新于",pts:"赞",cmt:"评论",star:"星",likes:"喜欢",dl:"下载",view:"查看职位",refreshed:"已刷新",jobsHint:"来自 HN 每月「Who is hiring」帖，按关键词筛选",
-   daily:"每日快照",liveLbl:"强制实时抓取（忽略 data.json）",liveHint:"关闭时优先读取每天由 GitHub Actions 生成的同源 data.json；找不到才用浏览器直连。"},
+   daily:"每日快照",liveLbl:"强制实时抓取（忽略 data.json）",liveHint:"关闭时优先读取本地每日抓取的 data.json；找不到才用浏览器直连。",
+   teleAll:"全部",cVietnam:"越南",cCambodia:"柬埔寨"},
  en:{rToday:"Today",rWeek:"This week",rMonth:"This month",rAll:"All",refresh:"Refresh",autoTip:"Auto refresh (5 min)",setTip:"Settings",
    cNews:"AI Frontier",cTech:"Tech Stack",cJobs:"Jobs",cTele:"Telecom",setTitle:"Settings",chipAll:"All",chipSocial:"Social",chipFav:"★ Saved",
    hot:"HOT",save:"Save",briefTip:"Export today's brief",themeTip:"Toggle theme",briefTitle:"Daily Intelligence Brief",briefDone:"Brief exported",
    arxivLbl:"Enable arXiv papers (Frontier)",arxivHint:"arXiv has no CORS; routed via a public proxy, may be slow or fail occasionally.",
-   proxyLbl:"CORS proxy URL (for arXiv)",proxyHint:"Prepended to the target URL. For production prefer a GitHub Actions cron writing a same-origin data.json.",
+   proxyLbl:"CORS proxy URL (for arXiv)",proxyHint:"Prepended to the target URL. For telecom, run run-daily.sh locally once per day to build data.json.",
    close:"Close",loading:"Loading…",empty:"No results — try another keyword or range",error:"Failed (rate-limited/CORS); showing cached",
    updated:"Updated",pts:"pts",cmt:"comments",star:"stars",likes:"likes",dl:"downloads",view:"View job",refreshed:"Refreshed",jobsHint:"From HN monthly “Who is hiring”, filtered by keyword",
-   daily:"Daily snapshot",liveLbl:"Force live fetch (ignore data.json)",liveHint:"When off, prefers the same-origin data.json built daily by GitHub Actions; falls back to browser fetch if absent."}
+   daily:"Daily snapshot",liveLbl:"Force live fetch (ignore data.json)",liveHint:"When off, prefers the local daily data.json; falls back to browser fetch if absent.",
+   teleAll:"All",cVietnam:"Vietnam",cCambodia:"Cambodia"}
 };
-let lang=localStorage.getItem(LANG_KEY)||"zh";
+let lang=localStorage.getItem(LANG_KEY)||"en";
 const t=k=>(I18N[lang][k]!=null?I18N[lang][k]:k);
 const cfg=Object.assign({arxiv:false,proxy:"https://api.allorigins.win/raw?url=",auto:true,forceLive:false},loadJSON(CFG_KEY,{}));
 const cache=loadJSON(CACHE_KEY,{});
@@ -378,22 +378,77 @@ const isFav=url=>!!favs[url];
 function toggleFav(it,col){ if(favs[it.url]) delete favs[it.url]; else favs[it.url]={...it,col}; saveJSON(FAV_KEY,favs); }
 
 const rendered={};   // 各栏当前渲染条目，供星标查找
-const isSocial=s=>s==="bsky"||s==="masto"||s==="reddit";
+const COUNTRY_META={VN:{flag:"🇻🇳",key:"cVietnam",cls:"vn"},KH:{flag:"🇰🇭",key:"cCambodia",cls:"kh"}};
+let teleCountryFilter=null;
+const isSocial=s=>s==="bsky"||s==="masto"||s==="reddit"||s==="x"||s==="facebook";
+function itemCountry(it){ return it.country||(it.countries&&it.countries[0])||null; }
+function countryLabel(code){ const m=COUNTRY_META[code]; return m?t(m.key):code||""; }
+function countryTagHtml(it){
+  const c=itemCountry(it); if(!c)return "";
+  const m=COUNTRY_META[c]; const cls=m?"tag-"+m.cls:"tag-country";
+  return `<span class="tag ${cls}">${esc(countryLabel(c))}</span>`;
+}
+function itemText(it){
+  return [it.title,it.snippet,it.title_orig,it.snippet_orig,it.vendor,countryLabel(itemCountry(it)),itemCountry(it),(it.vendors||[]).join(" "),(it.countries||[]).join(" ")].filter(Boolean).join(" ");
+}
 function hl(text){ const kw=$("#kw").value.trim(); const e=esc(text); if(!kw) return e;
   return e.replace(new RegExp("("+kw.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+")","ig"),"<mark>$1</mark>"); }
-function renderCards(col,items){
-  rendered[col]=items;
-  const body=$(`#${col}-body`);
-  if(!items.length){ body.innerHTML=`<div class="col-state">${t("empty")}</div>`; setDist(col,[]); return; }
-  body.innerHTML=items.map((it,idx)=>`<a class="card" href="${esc(it.url)}" target="_blank" rel="noopener">
-    <div class="card-top"><span class="src ${it.src}">${srcLabel(it.src)}</span>${isSocial(it.src)?`<span class="hot">${t("hot")}</span>`:""}${it.author?`<span class="auth">@${esc(it.author)}</span>`:""}${it.time?`<span class="ago">${timeAgo(it.time)}</span>`:""}<span class="star ${isFav(it.url)?"on":""}" data-col="${col}" data-idx="${idx}" title="${t("save")}">${isFav(it.url)?"★":"☆"}</span></div>
+function renderCardHtml(it,col,idx){
+  return `<a class="card" href="${esc(it.url)}" target="_blank" rel="noopener">
+    <div class="card-top"><span class="src ${it.src}">${srcLabel(it.src)}</span>${countryTagHtml(it)}${isSocial(it.src)?`<span class="hot">${t("hot")}</span>`:""}${it.author?`<span class="auth">@${esc(it.author)}</span>`:""}${it.time?`<span class="ago">${timeAgo(it.time)}</span>`:""}<span class="star ${isFav(it.url)?"on":""}" data-col="${col}" data-idx="${idx}" title="${t("save")}">${isFav(it.url)?"★":"☆"}</span></div>
+    ${it.vendor?`<div class="card-tags"><span class="tag tag-vendor">${esc(it.vendor)}</span></div>`:""}
     <div class="card-title">${hl(it.title)}</div>
+    ${it.title_orig?`<div class="card-orig">${hl(it.title_orig)}</div>`:""}
     ${it.snippet?`<div class="card-snip">${hl(it.snippet)}</div>`:""}
-    ${it.meta&&it.meta.length?`<div class="card-meta">${it.meta.filter(m=>m[1]!==""&&m[1]!=null).map(m=>`<span>${m[0]?metaIcon(m[0])+" ":""}${esc(m[1])}${m[0]?" "+t(m[0]):""}</span>`).join("")}</div>`:""}
-  </a>`).join("");
-  setDist(col,items); body.scrollTop=0;
+    ${it.snippet_orig&&it.snippet_orig!==it.snippet?`<div class="card-orig">${hl(it.snippet_orig)}</div>`:""}
+    ${it.meta&&it.meta.length?`<div class="card-meta">${it.meta.filter(m=>m[1]!==""&&m[1]!=null&&m[0]!=="country"&&m[0]!=="query").map(m=>`<span>${m[0]?metaIcon(m[0])+" ":""}${esc(m[1])}${m[0]?" "+t(m[0]):""}</span>`).join("")}</div>`:""}
+  </a>`;
+}
+function updateTeleCountryCounts(items){
+  const vn=(items||[]).filter(it=>itemCountry(it)==="VN").length;
+  const kh=(items||[]).filter(it=>itemCountry(it)==="KH").length;
+  const evn=$("#tele-cnt-vn"), ekh=$("#tele-cnt-kh");
+  if(evn)evn.textContent=vn; if(ekh)ekh.textContent=kh;
+}
+function syncTeleCountryTabs(){
+  document.querySelectorAll("#tele-countries .tele-ctab").forEach(b=>{
+    b.classList.toggle("active",(b.dataset.teleCt||"")===(teleCountryFilter||""));
+  });
+}
+function renderCards(col,items){
+  let list=items;
+  if(col==="tele"){
+    updateTeleCountryCounts(items);
+    if(teleCountryFilter) list=items.filter(it=>itemCountry(it)===teleCountryFilter);
+  }
+  rendered[col]=list;
+  const body=$(`#${col}-body`);
+  if(!list.length){ body.innerHTML=`<div class="col-state">${t("empty")}</div>`; setDist(col,list); return; }
+  if(col==="tele"&&!teleCountryFilter){
+    const order=["VN","KH","_other"];
+    const groups={VN:[],KH:[],_other:[]};
+    list.forEach(it=>{ const c=itemCountry(it); (groups[c]||groups._other).push(it); });
+    let idx=0;
+    body.innerHTML=order.filter(k=>groups[k].length).map(k=>{
+      if(k==="_other"){
+        return `<div class="country-section">${groups._other.map(it=>renderCardHtml(it,col,idx++)).join("")}</div>`;
+      }
+      const m=COUNTRY_META[k];
+      const head=`<div class="country-h ${m.cls}"><span class="flag">${m.flag}</span><span>${countryLabel(k)}</span><span class="cnt">${groups[k].length}</span></div>`;
+      return `<div class="country-section">${head}${groups[k].map(it=>renderCardHtml(it,col,idx++)).join("")}</div>`;
+    }).join("");
+  }else{
+    body.innerHTML=list.map((it,idx)=>renderCardHtml(it,col,idx)).join("");
+  }
+  setDist(col,list); body.scrollTop=0;
 }
 function setDist(col,items){ const el=$(`#${col}-dist`); if(!el)return;
+  if(col==="tele"){
+    const vn=items.filter(it=>itemCountry(it)==="VN").length;
+    const kh=items.filter(it=>itemCountry(it)==="KH").length;
+    el.textContent=[vn?`${countryLabel("VN")} ${vn}`:"",kh?`${countryLabel("KH")} ${kh}`:""].filter(Boolean).join("  ·  ");
+    return;
+  }
   const cnt={}; items.forEach(it=>cnt[it.src]=(cnt[it.src]||0)+1);
   el.textContent=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([s,n])=>`${srcLabel(s)} ${n}`).join("  ·  ");
 }
@@ -404,7 +459,7 @@ document.querySelectorAll(".col-body").forEach(b=>b.addEventListener("click",e=>
   toggleFav(it,star.dataset.col); const on=isFav(it.url);
   star.classList.toggle("on",on); star.textContent=on?"★":"☆";
 }));
-function srcLabel(s){ return {hn:"HN",gh:"GitHub",hf:"HF",dev:"dev.to",arxiv:"arXiv",job:"HIRING",tele:"TELECOM",bsky:"Bluesky",masto:"Mastodon",reddit:"Reddit"}[s]||s; }
+function srcLabel(s){ return {hn:"HN",gh:"GitHub",hf:"HF",dev:"dev.to",arxiv:"arXiv",job:"HIRING",tele:"TELECOM",bsky:"Bluesky",masto:"Mastodon",reddit:"Reddit",x:"X",facebook:"Facebook",gnews:"News",local:"Local"}[s]||s; }
 function metaIcon(k){ return {pts:"▲",cmt:"💬",star:"★",likes:"♥",dl:"⬇"}[k]||""; }
 
 async function loadCol(col,opts={}){
@@ -428,8 +483,10 @@ function fmtDate(ts){ try{ return new Date(ts).toLocaleString(lang==="zh"?"zh-CN
 function filterItems(items){
   const kw=($("#kw").value.trim()||"").toLowerCase(), since=sinceTs($("#range").value);
   return (items||[]).filter(it=>{
-    if(srcFilter==="social" && !(it.src==="bsky"||it.src==="masto")) return false;
-    if(kw && !((it.title||"")+" "+(it.snippet||"")).toLowerCase().includes(kw)) return false;
+    if(srcFilter==="social" && !isSocial(it.src)) return false;
+    if(countryFilter && itemCountry(it)!==countryFilter && !(it.countries||[]).includes(countryFilter)) return false;
+    if(vendorFilter && it.vendor!==vendorFilter && !(it.vendors||[]).includes(vendorFilter)) return false;
+    if(kw && !itemText(it).toLowerCase().includes(kw)) return false;
     if(since && it.time && it.time<since*1000) return false;
     return true;
   });
@@ -441,7 +498,7 @@ async function tryLoadSnapshot(){
   snapMode=false;
 }
 // ---------- 项目雷达 ----------
-const RADAR=["ZTE","VNPT","Open RAN"];
+const RADAR=["Huawei","Ericsson","Nokia","Samsung","ZTE","VNPT","Open RAN"];
 const SEEN_KEY="aipulse_radar_seen"; let radarSeen=loadJSON(SEEN_KEY,{});
 function getAll(){ return snapMode&&snapshot ? [].concat(...Object.keys(COLS).map(c=>snapshot[c]||[]))
   : [].concat(...Object.keys(COLS).map(c=>cache[c]?.items||[])); }
@@ -483,8 +540,7 @@ $("#refreshAll").onclick=()=>{ refreshAll(); toast(t("refreshed")); };
 $("#kw").addEventListener("keydown",e=>{ if(e.key==="Enter") applyFilter(); });
 $("#range").onchange=applyFilter;
 document.querySelectorAll(".rf").forEach(b=>b.onclick=()=>{ if(snapMode) renderSnapshot(); else loadCol(b.dataset.col); });
-$("#langBtn").onclick=()=>{ lang=lang==="zh"?"en":"zh"; localStorage.setItem(LANG_KEY,lang); applyLang();
-  if(favView) renderFavs(); else if(snapMode) renderSnapshot(); else Object.keys(COLS).forEach(c=>{ if(cache[c])setMeta(c,cache[c].items.length,cache[c].ts); }); };
+$("#langBtn").onclick=()=>{ lang=lang==="zh"?"en":"zh"; localStorage.setItem(LANG_KEY,lang); applyLang(); };
 
 // 主题
 let theme=localStorage.getItem("aipulse_theme")||"dark";
@@ -525,20 +581,34 @@ function applyLang(){
   document.querySelectorAll("[data-i18n-tt]").forEach(el=>el.title=t(el.dataset.i18nTt));
   $("#langBtn").textContent=lang==="zh"?"EN":"中";
   $("#jobs-body").dataset.hint=t("jobsHint");
+  if(favView) renderFavs(); else if(snapMode) renderSnapshot();
+  else Object.keys(COLS).forEach(c=>{ if(cache[c]?.items) renderCards(c,cache[c].items); });
 }
 
+// ---------- 通讯栏国家标签 ----------
+document.querySelectorAll("#tele-countries .tele-ctab").forEach(b=>b.onclick=()=>{
+  teleCountryFilter=b.dataset.teleCt||null;
+  syncTeleCountryTabs();
+  if(favView) renderFavs();
+  else if(snapMode) renderSnapshot();
+  else if(cache.tele?.items) renderCards("tele",filterItems(cache.tele.items));
+  else loadCol("tele");
+});
+
 // ---------- 快捷词 chip ----------
-let srcFilter=null;   // 按来源筛选（如 social）
+let srcFilter=null, countryFilter=null, vendorFilter=null;
 function setActiveChip(el){ document.querySelectorAll("#chips .chip").forEach(c=>c.classList.toggle("active",c===el)); }
 document.querySelectorAll("#chips .chip").forEach(c=>c.onclick=()=>{
-  favView=false; srcFilter=null;
-  if(c.dataset.view==="fav"){ favView=true; $("#kw").value=""; }
-  else if(c.dataset.src){ srcFilter=c.dataset.src; $("#kw").value=""; }
-  else { $("#kw").value=c.dataset.kw||""; if(c.dataset.kw && RADAR.includes(c.dataset.kw)) markRadarSeen(c.dataset.kw); }
+  favView=false; srcFilter=null; countryFilter=null; vendorFilter=null;
+  if(c.dataset.view==="fav"){ favView=true; $("#kw").value=""; teleCountryFilter=null; syncTeleCountryTabs(); }
+  else if(c.dataset.src){ srcFilter=c.dataset.src; $("#kw").value=""; teleCountryFilter=null; syncTeleCountryTabs(); }
+  else if(c.dataset.country){ countryFilter=c.dataset.country; teleCountryFilter=countryFilter; syncTeleCountryTabs(); $("#kw").value=""; }
+  else if(c.dataset.vendor){ vendorFilter=c.dataset.vendor; $("#kw").value=""; teleCountryFilter=null; syncTeleCountryTabs(); }
+  else { $("#kw").value=c.dataset.kw||""; teleCountryFilter=null; syncTeleCountryTabs(); if(c.dataset.kw && RADAR.includes(c.dataset.kw)) markRadarSeen(c.dataset.kw); }
   setActiveChip(c); applyFilter();
 });
-$("#kw").addEventListener("input",()=>{ favView=false; srcFilter=null; const v=$("#kw").value.trim().toLowerCase(); let m=null;
-  document.querySelectorAll("#chips .chip").forEach(c=>{ if(!c.dataset.src&&!c.dataset.view&&(c.dataset.kw||"").toLowerCase()===v) m=c; }); setActiveChip(m); });
+$("#kw").addEventListener("input",()=>{ favView=false; srcFilter=null; countryFilter=null; vendorFilter=null; const v=$("#kw").value.trim().toLowerCase(); let m=null;
+  document.querySelectorAll("#chips .chip").forEach(c=>{ if(!c.dataset.src&&!c.dataset.view&&!c.dataset.country&&!c.dataset.vendor&&(c.dataset.kw||"").toLowerCase()===v) m=c; }); setActiveChip(m); });
 
 // ---------- 手机端主题标签 ----------
 let activeTab="news";

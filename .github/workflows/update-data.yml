@@ -2,9 +2,8 @@ name: Update AIPulse data
 
 on:
   schedule:
-    # UTC 00:00 / 12:00 → 越南/北京约 07:00 / 19:00 早晚各一次
+    # UTC 00:00 → 越南/北京约 07:00，每日 1 次
     - cron: "0 0 * * *"
-    - cron: "0 12 * * *"
   workflow_dispatch:           # 手动触发
 
 permissions:
@@ -24,6 +23,8 @@ jobs:
           node-version: "22"
 
       - name: 抓取数据（Node 22 内置 fetch, 零依赖）
+        env:
+          DEEPL_AUTH_KEY: ${{ secrets.DEEPL_AUTH_KEY }}
         run: node scripts/fetch-data.mjs
 
       - name: 提交更新
