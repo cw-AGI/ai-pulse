@@ -270,7 +270,7 @@ const I18N={
    arxivLbl:"启用 arXiv 论文源（前沿栏）",arxivHint:"arXiv 不支持跨域，需经公共代理，可能较慢或偶尔失败。",
    proxyLbl:"CORS 代理地址（用于 arXiv）",proxyHint:"代理会拼在目标 URL 前。通讯栏建议本地每日运行 run-daily.sh 生成 data.json。",
    close:"关闭",loading:"加载中…",empty:"暂无结果，换个关键词或时间范围",error:"加载失败（可能被限流/跨域），显示上次缓存",
-   updated:"更新于",pts:"赞",cmt:"评论",star:"星",likes:"喜欢",dl:"下载",view:"查看职位",refreshed:"已刷新",jobsHint:"来自 HN 每月「Who is hiring」帖，按关键词筛选",
+   updated:"更新于",pts:"赞",cmt:"评论",star:"星",likes:"喜欢",dl:"下载",view:"查看职位",refreshed:"已刷新",jobsHint:"越南 / 中国 AI 与通信岗位；每日快照优先，实时模式从 HN 招聘帖筛选",
    daily:"每日快照",liveLbl:"强制实时抓取（忽略 data.json）",liveHint:"关闭时优先读取本地每日抓取的 data.json；找不到才用浏览器直连。",
    teleAll:"全部",cVietnam:"越南",cCambodia:"柬埔寨"},
  en:{rToday:"Today",rWeek:"This week",rMonth:"This month",rAll:"All",refresh:"Refresh",autoTip:"Auto refresh (5 min)",setTip:"Settings",
@@ -279,7 +279,7 @@ const I18N={
    arxivLbl:"Enable arXiv papers (Frontier)",arxivHint:"arXiv has no CORS; routed via a public proxy, may be slow or fail occasionally.",
    proxyLbl:"CORS proxy URL (for arXiv)",proxyHint:"Prepended to the target URL. For telecom, run run-daily.sh locally once per day to build data.json.",
    close:"Close",loading:"Loading…",empty:"No results — try another keyword or range",error:"Failed (rate-limited/CORS); showing cached",
-   updated:"Updated",pts:"pts",cmt:"comments",star:"stars",likes:"likes",dl:"downloads",view:"View job",refreshed:"Refreshed",jobsHint:"From HN monthly “Who is hiring”, filtered by keyword",
+   updated:"Updated",pts:"pts",cmt:"comments",star:"stars",likes:"likes",dl:"downloads",view:"View job",refreshed:"Refreshed",jobsHint:"Vietnam / China AI and telecom roles; daily snapshot first, live mode filters HN hiring",
    daily:"Daily snapshot",liveLbl:"Force live fetch (ignore data.json)",liveHint:"When off, prefers the local daily data.json; falls back to browser fetch if absent.",
    teleAll:"All",cVietnam:"Vietnam",cCambodia:"Cambodia"}
 };
@@ -351,17 +351,48 @@ async function fetchTech(kw,range){
 function fmtNum(n){ return n>=1e6?(n/1e6).toFixed(1)+"M":n>=1e3?(n/1e3).toFixed(1)+"k":""+n; }
 
 let hiringThread=null;
+const JOB_SEARCH_QUERIES=[
+  "AI Vietnam jobs","machine learning Vietnam jobs","LLM Vietnam jobs","telecom Vietnam jobs","5G Vietnam jobs","network engineer Vietnam jobs",
+  "AI China jobs","machine learning China jobs","LLM China jobs","telecom China jobs","5G China jobs","network engineer China jobs"
+];
+const JOB_PORTAL_SEARCHES=[
+  {src:"job",title:"Vietnam AI jobs - ITviec",snippet:"Vietnam · AI / machine learning engineering roles · ITviec search",url:"https://itviec.com/it-jobs?query=AI",country:"VN",countries:["VN"],meta:[["region","Vietnam"],["source","ITviec"]]},
+  {src:"job",title:"Vietnam telecom and 5G jobs - VietnamWorks",snippet:"Vietnam · telecom / 5G / network engineering roles · VietnamWorks search",url:"https://www.vietnamworks.com/viec-lam?q=5G%20telecom",country:"VN",countries:["VN"],meta:[["region","Vietnam"],["source","VietnamWorks"]]},
+  {src:"job",title:"Vietnam machine learning jobs - TopCV",snippet:"Vietnam · machine learning / data science roles · TopCV search",url:"https://www.topcv.vn/tim-viec-lam-machine-learning",country:"VN",countries:["VN"],meta:[["region","Vietnam"],["source","TopCV"]]},
+  {src:"job",title:"China AI jobs - Liepin",snippet:"China · AI / machine learning roles · Liepin search",url:"https://www.liepin.com/zhaopin/?key=AI",country:"CN",countries:["CN"],meta:[["region","China"],["source","Liepin"]]},
+  {src:"job",title:"China telecom and 5G jobs - Zhaopin",snippet:"China · telecom / 5G / network engineering roles · Zhaopin search",url:"https://sou.zhaopin.com/?kw=5G%20%E9%80%9A%E4%BF%A1",country:"CN",countries:["CN"],meta:[["region","China"],["source","Zhaopin"]]},
+  {src:"job",title:"China AI engineering jobs - BOSS Zhipin",snippet:"China · artificial intelligence / AI engineering roles · BOSS Zhipin search",url:"https://www.zhipin.com/web/geek/job?query=%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD",country:"CN",countries:["CN"],meta:[["region","China"],["source","BOSS Zhipin"]]}
+];
+function jobCountries(it){
+  const text=[it?.title,it?.snippet].filter(Boolean).join(" ").toLowerCase();
+  const out=[];
+  if(/vietnam|viet nam|việt nam|hanoi|ha noi|ho chi minh|hcmc|saigon|da nang|viettel|vnpt|mobifone|vinaphone/.test(text))out.push("VN");
+  if(/china|chinese|mainland china|beijing|shanghai|shenzhen|guangzhou|hangzhou|chengdu|hong kong|中国|北京|上海|深圳|广州|杭州|成都|香港/.test(text))out.push("CN");
+  return out;
+}
+function isTargetJob(it){
+  const text=[it?.title,it?.snippet].filter(Boolean).join(" ");
+  return jobCountries(it).length>0 && (/\b(ai|artificial intelligence|ml|machine learning|llm|large language model|nlp|deep learning|genai|generative ai|mlops|data scientist|data engineer|telecom|telecommunications|5g|6g|open ran|ran|radio access|wireless|rf engineer|core network|network engineer|lte|fiber|fibre|broadband|carrier network|operator network)\b/i.test(text)||/人工智能|机器学习|深度学习|大模型|算法工程师|数据科学|数据工程|通信|电信|无线|核心网|网络工程|光纤|宽带/.test(text));
+}
 async function fetchJobs(kw){
-  kw=kw||"AI";
   // 找到最新的 "Ask HN: Who is hiring?" 帖子
-  if(!hiringThread){ const s=await jget(`https://hn.algolia.com/api/v1/search?query=${encodeURIComponent("Ask HN: Who is hiring")}&tags=story&hitsPerPage=5`);
-    const hit=(s.hits||[]).filter(h=>/who is hiring/i.test(h.title||"")).sort((a,b)=>b.created_at_i-a.created_at_i)[0];
+  if(!hiringThread){ const s=await jget(`https://hn.algolia.com/api/v1/search_by_date?query=${encodeURIComponent("Ask HN: Who is hiring")}&tags=story&hitsPerPage=10`);
+    const hit=(s.hits||[]).filter(h=>/^Ask HN: Who is hiring\?/i.test(h.title||"")).sort((a,b)=>b.created_at_i-a.created_at_i)[0];
     if(hit)hiringThread=hit.objectID; }
-  if(!hiringThread) return [];
-  const c=await jget(`https://hn.algolia.com/api/v1/search?tags=comment,story_${hiringThread}&query=${encodeURIComponent(kw)}&hitsPerPage=40`);
-  return (c.hits||[]).filter(h=>h.comment_text).map(h=>{ const txt=htmlToText(h.comment_text);
-    return {src:"job",title:txt.split(/[.|·\n]| - /)[0].slice(0,80),snippet:txt.slice(0,260),
-      url:`https://news.ycombinator.com/item?id=${h.objectID}`,time:h.created_at_i*1000,meta:[]}; });
+  const seen=new Set(), out=[];
+  JOB_PORTAL_SEARCHES.forEach(it=>{seen.add(it.url); out.push({...it,time:Date.now()});});
+  if(!hiringThread) return out;
+  const queries=kw?[kw,"Vietnam","China","Hong Kong","Shanghai","Shenzhen","Beijing","Hanoi","Ho Chi Minh"]:["Vietnam","Viet Nam","China","Hong Kong","Shanghai","Shenzhen","Beijing","Hanoi","Ho Chi Minh"];
+  for(const q of queries){ try{
+    const c=await jget(`https://hn.algolia.com/api/v1/search?tags=comment,story_${hiringThread}&query=${encodeURIComponent(q)}&hitsPerPage=40`);
+    (c.hits||[]).filter(h=>h.comment_text&&!seen.has(h.objectID)).forEach(h=>{ seen.add(h.objectID); const txt=htmlToText(h.comment_text);
+      const item={src:"job",title:txt.split(/[.|·\n]| - /)[0].slice(0,80),snippet:txt.slice(0,260),
+        url:`https://news.ycombinator.com/item?id=${h.objectID}`,time:h.created_at_i*1000,meta:[]};
+      const countries=jobCountries(item);
+      if(isTargetJob(item))out.push({...item,countries,country:countries[0],meta:[["region",countries.map(c=>c==="VN"?"Vietnam":"China").join("/")]]});
+    });
+  }catch(e){} }
+  return out.sort((a,b)=>b.time-a.time);
 }
 
 async function fetchTelecom(kw,range){
