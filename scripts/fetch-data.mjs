@@ -136,28 +136,115 @@ async function srcFeeds() {
   const cut = Date.now() - 30 * 86400 * 1000;   // 近 30 天
   return res.flatMap(r => r.status === "fulfilled" ? r.value : []).filter(i => i.time > cut);
 }
-async function srcGitHub() {
-  const since = new Date(Date.now() - 21 * 86400 * 1000).toISOString().slice(0, 10);
-  const q = encodeURIComponent(`AI stars:>120 pushed:>${since}`);
+function mapGhRepo(r, src = "gh", extraMeta = []) {
+  return {
+    src,
+    title: r.full_name,
+    url: r.html_url,
+    time: Date.parse(r.pushed_at) || Date.now(),
+    snippet: r.description || "",
+    meta: [["star", r.stargazers_count], [null, r.language || ""], ...extraMeta],
+  };
+}
+function repoBlob(r) {
+  const topics = Array.isArray(r.topics) ? r.topics.join(" ") : "";
+  return `${r.full_name || ""} ${r.description || ""} ${topics}`.toLowerCase();
+}
+function isSkillRepo(r) {
+  const t = repoBlob(r);
+  const topics = Array.isArray(r.topics) ? r.topics.map(x => String(x).toLowerCase()) : [];
+  if (topics.some(x => /agent-?skills?|claude-skills?|cursor-skills?/.test(x))) return true;
+  return /(agent[- ]?skills?|claude[- ]?skills?|cursor[- ]?skills?|skill\.md|agentskills\.io|awesome-agent-skills)/.test(t)
+    || (/\bsuperpowers\b/.test(t) && /\bskill/.test(t))
+    || (/\bskills?\b/.test(t) && /(claude|cursor|codex|anthropic|agentic|llm|ai coding)/.test(t));
+}
+async function ghSearch(query, { sort = "updated", perPage = 30 } = {}) {
   const headers = { "Accept": "application/vnd.github+json", ...(GH_TOKEN ? { "Authorization": "Bearer " + GH_TOKEN } : {}) };
-  try {
-    const d = await getJSON(`https://api.github.com/search/repositories?q=${q}&sort=stars&order=desc&per_page=40`, headers);
-    return (d.items || []).map(r => ({ src: "gh", title: r.full_name, url: r.html_url, time: Date.parse(r.pushed_at) || Date.now(),
-      snippet: r.description || "", meta: [["star", r.stargazers_count], [null, r.language || ""]] }));
-  } catch (e) { console.warn("github", e.message); return []; }
+  const q = encodeURIComponent(query);
+  const d = await getJSON(`https://api.github.com/search/repositories?q=${q}&sort=${sort}&order=desc&per_page=${perPage}`, headers);
+  return d.items || [];
+}
+async function srcGitHub() {
+  // 热门 AI 仓池 + 按最近 push 置顶（合并阶段统一按 time 排序）
+  const since = new Date(Date.now() - 21 * 86400 * 1000).toISOString().slice(0, 10);
+  const out = [], seen = new Set();
+  const queries = [
+    `AI stars:>500 pushed:>${since}`,
+    `LLM OR "large language model" stars:>300 pushed:>${since}`,
+  ];
+  for (const q of queries) {
+    try {
+      const items = await ghSearch(q, { sort: "updated", perPage: 40 });
+      for (const r of items) {
+        if (!r?.html_url || seen.has(r.html_url)) continue;
+        if ((r.stargazers_count || 0) < 300) continue;
+        seen.add(r.html_url);
+        out.push(mapGhRepo(r, "gh"));
+      }
+    } catch (e) { console.warn("github", q, e.message); }
+  }
+  return out;
+}
+async function ghRepo(fullName) {
+  const headers = { "Accept": "application/vnd.github+json", ...(GH_TOKEN ? { "Authorization": "Bearer " + GH_TOKEN } : {}) };
+  return getJSON(`https://api.github.com/repos/${fullName}`, headers);
+}
+async function srcSkills() {
+  // 种子仓（确认热门，始终保留）+ 搜索补充近期有更新的 skill
+  const seedNames = [
+    "anthropics/skills",
+    "obra/superpowers",
+    "vercel-labs/skills",
+    "VoltAgent/awesome-agent-skills",
+    "addyosmani/agent-skills",
+  ];
+  const queries = [
+    "topic:agent-skills",
+    "\"agent skills\" stars:>80",
+    "\"claude skills\" OR \"cursor skills\" stars:>50",
+    "superpowers in:name,description stars:>200",
+    "awesome-agent-skills stars:>50",
+  ];
+  const seeds = [], rest = [], seen = new Set();
+  for (const full of seedNames) {
+    try {
+      const r = await ghRepo(full);
+      if (!r?.html_url || seen.has(r.html_url)) continue;
+      seen.add(r.html_url);
+      seeds.push(mapGhRepo(r, "skill", [["kind", "skill"], ["seed", "1"]]));
+    } catch (e) { console.warn("skill-seed", full, e.message); }
+  }
+  for (const q of queries) {
+    try {
+      const items = await ghSearch(q, { sort: "updated", perPage: 30 });
+      for (const r of items) {
+        if (!r?.html_url || seen.has(r.html_url)) continue;
+        if (!isSkillRepo(r)) continue;
+        if ((r.stargazers_count || 0) < 30) continue;
+        seen.add(r.html_url);
+        rest.push(mapGhRepo(r, "skill", [["kind", "skill"]]));
+      }
+    } catch (e) { console.warn("skills", q, e.message); }
+  }
+  return { seeds, items: [...seeds, ...rest] };
 }
 async function srcHF() {
+  // 热度池防刷；时间用 lastModified，合并后按更新置顶
   try {
-    const d = await getJSON(`https://huggingface.co/api/models?sort=likes7d&direction=-1&limit=30`);
+    const d = await getJSON(`https://huggingface.co/api/models?sort=likes7d&direction=-1&limit=40`);
     const arr = Array.isArray(d) ? d : [];
     if (!arr.length) throw new Error("empty likes7d");
-    return arr.map(m => ({ src: "hf", title: m.id || m.modelId, url: `https://huggingface.co/${m.id || m.modelId}`,
-      time: m.lastModified ? Date.parse(m.lastModified) : Date.now(), meta: [["likes", m.likes || 0], ["dl", fmtNum(m.downloads || 0)]] }));
-  } catch (e) {
-    try { // 回退：按总赞数
-      const d = await getJSON(`https://huggingface.co/api/models?sort=likes&direction=-1&limit=30`);
-      return (d || []).map(m => ({ src: "hf", title: m.id || m.modelId, url: `https://huggingface.co/${m.id || m.modelId}`,
+    return arr
+      .filter(m => (m.likes || 0) >= 20 || (m.downloads || 0) >= 10000)
+      .map(m => ({ src: "hf", title: m.id || m.modelId, url: `https://huggingface.co/${m.id || m.modelId}`,
         time: m.lastModified ? Date.parse(m.lastModified) : Date.now(), meta: [["likes", m.likes || 0], ["dl", fmtNum(m.downloads || 0)]] }));
+  } catch (e) {
+    try {
+      const d = await getJSON(`https://huggingface.co/api/models?sort=likes&direction=-1&limit=30`);
+      return (Array.isArray(d) ? d : [])
+        .filter(m => (m.likes || 0) >= 50)
+        .map(m => ({ src: "hf", title: m.id || m.modelId, url: `https://huggingface.co/${m.id || m.modelId}`,
+          time: m.lastModified ? Date.parse(m.lastModified) : Date.now(), meta: [["likes", m.likes || 0], ["dl", fmtNum(m.downloads || 0)]] }));
     } catch (e2) { console.warn("hf", e2.message); return []; }
   }
 }
@@ -278,8 +365,8 @@ function dedupe(items) {
 }
 
 (async () => {
-  const [hn, dev, arxiv, feeds, gh, hf, jobs, teleFeeds, teleHN, teleSea, bskyAI, bskyTele, mastoAI, mastoTele, redditAI, redditTele] = await Promise.all([
-    srcHNStories(), srcDevto(), srcArxiv(), srcFeeds(), srcGitHub(), srcHF(), srcJobs(), srcTelecomFeeds(), srcTelecomHN(),
+  const [hn, dev, arxiv, feeds, gh, skillsPack, hf, jobs, teleFeeds, teleHN, teleSea, bskyAI, bskyTele, mastoAI, mastoTele, redditAI, redditTele] = await Promise.all([
+    srcHNStories(), srcDevto(), srcArxiv(), srcFeeds(), srcGitHub(), srcSkills(), srcHF(), srcJobs(), srcTelecomFeeds(), srcTelecomHN(),
     buildSeaTelecom(),
     Promise.all([srcBluesky("AI"), srcBluesky("LLM")]).then(a => a.flat()),
     Promise.all([srcBluesky("5G"), srcBluesky("telecom")]).then(a => a.flat()),
@@ -289,7 +376,18 @@ function dedupe(items) {
     srcReddit(["telecom", "networking"])
   ]);
   const news = dedupe([...hn, ...dev, ...arxiv, ...feeds, ...bskyAI, ...mastoAI, ...redditAI]).sort((a, b) => b.time - a.time).slice(0, 90);
-  const tech = dedupe([...gh, ...hf]).slice(0, 50);
+  // 技术栈：最近更新置顶；热门 skill 种子仓保送进榜；限制 HF 占比避免刷屏
+  const byTime = (a, b) => (b.time || 0) - (a.time || 0);
+  const skillSeeds = skillsPack?.seeds || [];
+  const skillItems = skillsPack?.items || [];
+  const skillFresh = dedupe(skillItems).sort(byTime).slice(0, 20);
+  const ghPool = dedupe(gh).sort(byTime).slice(0, 25);
+  const hfPool = dedupe(hf).sort(byTime).slice(0, 12);
+  const pool = dedupe([...skillFresh, ...ghPool, ...hfPool]).sort(byTime);
+  const seedUrls = new Set(skillSeeds.map(i => i.url));
+  const freshest = pool.filter(i => !seedUrls.has(i.url)).slice(0, 8); // 最新动态先占前排
+  const rest = pool.filter(i => !seedUrls.has(i.url) && !freshest.includes(i));
+  const tech = dedupe([...freshest, ...skillSeeds.sort(byTime), ...rest]).slice(0, 60);
   const jobsList = dedupe(jobs).sort((a, b) => b.time - a.time).slice(0, 45);
   const teleGlobal = dedupe([...teleFeeds, ...teleHN, ...bskyTele, ...mastoTele, ...redditTele])
     .filter(i => matchesSeaFocus(i));

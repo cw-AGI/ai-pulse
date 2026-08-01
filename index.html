@@ -68,6 +68,7 @@
   .src.gnews{background:rgba(66,133,244,.14);color:#7eb0ff}
   .src.local{background:rgba(46,160,130,.16);color:#5ecfaa}
   .src.curated{background:rgba(234,179,8,.16);color:#fbbf24}
+  .src.skill{background:rgba(168,85,247,.16);color:#c084fc}
   .src.native-vi{background:rgba(239,68,68,.14);color:#f87171}
   .src.native-km{background:rgba(59,130,246,.14);color:#60a5fa}
   .src.native-zh{background:rgba(234,88,12,.14);color:#fb923c}
@@ -184,6 +185,7 @@
   <button class="chip" data-kw="RAG">RAG</button>
   <button class="chip" data-kw="Multimodal">Multimodal</button>
   <button class="chip" data-kw="Open Source">Open Source</button>
+  <button class="chip" data-src="skill">Skill</button>
   <button class="chip tele" data-kw="5G">5G</button>
   <button class="chip tele" data-kw="6G">6G</button>
   <button class="chip tele" data-kw="Open RAN">Open RAN</button>
@@ -334,19 +336,48 @@ async function fetchNews(kw,range){
 }
 function devTag(kw){ const k=kw.toLowerCase(); if(/ml|machine/.test(k))return "machinelearning"; if(/llm|gpt|agent|rag/.test(k))return "ai"; return "ai"; }
 
+function isSkillRepoLive(r){
+  const topics=(r.topics||[]).map(x=>String(x).toLowerCase());
+  const t=`${r.full_name||""} ${r.description||""} ${topics.join(" ")}`.toLowerCase();
+  if(topics.some(x=>/agent-?skills?|claude-skills?|cursor-skills?/.test(x))) return true;
+  return /(agent[- ]?skills?|claude skills?|cursor skills?|skill\.md|superpowers|agentskills\.io|awesome-agent-skills)/.test(t);
+}
 async function fetchTech(kw,range){
   kw=kw||"AI";
   const items=[]; const since=sinceDate(range);
-  // GitHub 热门仓库
-  let q=`${kw} stars:>30`; if(since)q+=` pushed:>${since}`;
-  const gh=await jget(`https://api.github.com/search/repositories?q=${encodeURIComponent(q)}&sort=stars&order=desc&per_page=24`);
-  (gh.items||[]).forEach(r=>items.push({src:"gh",title:r.full_name,url:r.html_url,time:new Date(r.pushed_at).getTime(),
-    snippet:r.description||"", meta:[["star",r.stargazers_count],[null,r.language||""]]}));
-  // Hugging Face 模型
-  try{ const hf=await jget(`https://huggingface.co/api/models?search=${encodeURIComponent(kw)}&sort=likes&direction=-1&limit=14`);
-    (hf||[]).forEach(m=>items.push({src:"hf",title:m.id||m.modelId,url:`https://huggingface.co/${m.id||m.modelId}`,
-      time:m.lastModified?new Date(m.lastModified).getTime():Date.now(), meta:[["likes",m.likes||0],["dl",fmtNum(m.downloads||0)]]})); }catch(e){}
-  return items;
+  const seen=new Set();
+  const pushGh=(r,src,extra=[])=>{
+    if(!r?.html_url||seen.has(r.html_url))return; seen.add(r.html_url);
+    items.push({src,title:r.full_name,url:r.html_url,time:new Date(r.pushed_at).getTime(),
+      snippet:r.description||"", meta:[["star",r.stargazers_count],[null,r.language||""],...extra]});
+  };
+  // GitHub AI：热门池 + 按最近 push
+  let q=`${kw} stars:>300`; if(since)q+=` pushed:>${since}`;
+  try{
+    const gh=await jget(`https://api.github.com/search/repositories?q=${encodeURIComponent(q)}&sort=updated&order=desc&per_page=24`);
+    (gh.items||[]).filter(r=>(r.stargazers_count||0)>=300).forEach(r=>pushGh(r,"gh"));
+  }catch(e){}
+  // Agent Skills：热门种子 + 搜索
+  const skillSeeds=["anthropics/skills","obra/superpowers","vercel-labs/skills","VoltAgent/awesome-agent-skills","addyosmani/agent-skills"];
+  for(const full of skillSeeds){
+    try{ const r=await jget(`https://api.github.com/repos/${full}`); if(r&&r.html_url) pushGh(r,"skill",[["kind","skill"],["seed","1"]]); }catch(e){}
+  }
+  const skillQs=["topic:agent-skills","\"agent skills\" stars:>50","superpowers in:name,description stars:>100"];
+  for(const sq of skillQs){
+    try{
+      const gh=await jget(`https://api.github.com/search/repositories?q=${encodeURIComponent(sq)}&sort=updated&order=desc&per_page=16`);
+      (gh.items||[]).filter(r=>isSkillRepoLive(r)).forEach(r=>pushGh(r,"skill",[["kind","skill"]]));
+    }catch(e){}
+  }
+  // Hugging Face：热度池，时间用 lastModified
+  try{
+    const hf=await jget(`https://huggingface.co/api/models?search=${encodeURIComponent(kw)}&sort=likes7d&direction=-1&limit=20`);
+    (hf||[]).filter(m=>(m.likes||0)>=20||(m.downloads||0)>=10000).forEach(m=>{
+      const url=`https://huggingface.co/${m.id||m.modelId}`; if(seen.has(url))return; seen.add(url);
+      items.push({src:"hf",title:m.id||m.modelId,url,time:m.lastModified?new Date(m.lastModified).getTime():Date.now(),
+        meta:[["likes",m.likes||0],["dl",fmtNum(m.downloads||0)]]}); });
+  }catch(e){}
+  return items.sort((a,b)=>(b.time||0)-(a.time||0));
 }
 function fmtNum(n){ return n>=1e6?(n/1e6).toFixed(1)+"M":n>=1e3?(n/1e3).toFixed(1)+"k":""+n; }
 
@@ -501,7 +532,7 @@ document.querySelectorAll(".col-body").forEach(b=>b.addEventListener("click",e=>
   toggleFav(it,star.dataset.col); const on=isFav(it.url);
   star.classList.toggle("on",on); star.textContent=on?"★":"☆";
 }));
-function srcLabel(s){ return {hn:"HN",gh:"GitHub",hf:"HF",dev:"dev.to",arxiv:"arXiv",job:"HIRING",tele:"TELECOM",bsky:"Bluesky",masto:"Mastodon",reddit:"Reddit",x:"X",facebook:"Facebook",gnews:"News",local:"Local",curated:"Curated","native-vi":"VI","native-km":"KH","native-zh":"中文"}[s]||s; }
+function srcLabel(s){ return {hn:"HN",gh:"GitHub",hf:"HF",skill:"Skill",dev:"dev.to",arxiv:"arXiv",job:"HIRING",tele:"TELECOM",bsky:"Bluesky",masto:"Mastodon",reddit:"Reddit",x:"X",facebook:"Facebook",gnews:"News",local:"Local",curated:"Curated","native-vi":"VI","native-km":"KH","native-zh":"中文"}[s]||s; }
 function metaIcon(k){ return {pts:"▲",cmt:"💬",star:"★",likes:"♥",dl:"⬇"}[k]||""; }
 
 async function loadCol(col,opts={}){

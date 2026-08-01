@@ -81,6 +81,13 @@ export AIPULSE_TRANSLATE_MAX=50   # optional cap per run
 node fetch-data.mjs
 ```
 
+## Tech stack column
+
+- Sources: GitHub AI repos + **Agent Skills** + Hugging Face models
+- Sort: **recent update first** (`pushed_at` / `lastModified`) — not total-star ranking
+- Skill seeds always kept near top after the freshest updates: `anthropics/skills`, `obra/superpowers`, `vercel-labs/skills`, `VoltAgent/awesome-agent-skills`, `addyosmani/agent-skills`
+- HF capped so it does not flood the column; Skill chip filters `src=skill`
+
 ## Sources (telecom column)
 
 | Type | Coverage |
