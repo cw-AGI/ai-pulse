@@ -305,7 +305,7 @@ const I18N={
    close:"Close",loading:"Loading…",empty:"No results — try another keyword or range",error:"Failed (rate-limited/CORS); showing cached",
    updated:"Updated",pts:"pts",cmt:"comments",star:"stars",likes:"likes",dl:"downloads",view:"View job",refreshed:"Refreshed",jobsHint:"Vietnam / China AI and telecom roles; daily snapshot first, live mode filters HN hiring",
    daily:"Daily snapshot",liveLbl:"Force live fetch (ignore data.json)",liveHint:"When off, prefers the local daily data.json; falls back to browser fetch if absent.",
-   teleAll:"All",cVietnam:"Vietnam",cCambodia:"Cambodia",cBrief:"🔥 Hot Analysis",briefSummary:"Trending Summary",briefTop:"Top Items",briefNoData:"No data yet, please refresh first"}}
+   teleAll:"All",cVietnam:"Vietnam",cCambodia:"Cambodia",cBrief:"🔥 Hot Analysis",briefSummary:"Trending Summary",briefTop:"Top Items",briefNoData:"No data yet, please refresh first"}
 };
 let lang=localStorage.getItem(LANG_KEY)||"en";
 const t=k=>(I18N[lang][k]!=null?I18N[lang][k]:k);
@@ -765,7 +765,7 @@ function renderBrief(){
   const since=sinceTs($("#range").value);
   let allNews=(data.news||[]).slice();
   if(kw) allNews=allNews.filter(it=>itemText(it).toLowerCase().includes(kw));
-  if(since) allNews=allNews=allNews.filter(it=>!it.time||it.time>=since*1000);
+  if(since) allNews=allNews.filter(it=>!it.time||it.time>=since*1000);
   allNews.sort((a,b)=>scoreItem(b)-scoreItem(a));
   const topNews=allNews.slice(0,15);
 
