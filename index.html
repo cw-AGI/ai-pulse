@@ -36,9 +36,9 @@
   .btn.on{background:var(--accent-soft);border-color:rgba(68,147,248,.5);color:var(--accent)}
   .btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 
-  .board{flex:1;display:flex;overflow-x:auto;overflow-y:hidden}
-  .col{flex:1 1 0;min-width:300px;display:flex;flex-direction:column;border-right:1px solid var(--border);overflow:hidden}
-  .col:last-child{border-right:none}
+  .board{flex:1;display:block;overflow-y:auto;overflow-x:hidden}
+  .col{display:none;flex-direction:column;height:100%;border-right:none;overflow:hidden}
+  .col.active{display:flex}
   .col-h{flex:none;display:flex;align-items:center;gap:9px;padding:13px 15px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,var(--panel),rgba(22,27,34,0))}
   .col-h .ic{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;flex:none}
   .col-h .ic svg{width:17px;height:17px;stroke:#fff;fill:none;stroke-width:1.9}
@@ -50,7 +50,7 @@
   .col-h .rf svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}
   .col-h .rf.spin svg{animation:spin 1s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
-  .col-body{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:9px;scrollbar-width:thin}
+  .col-body{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:9px;scrollbar-width:thin;max-height:calc(100vh - 200px)}
   .col-body::-webkit-scrollbar{width:8px}.col-body::-webkit-scrollbar-thumb{background:#2a323d;border-radius:4px}
 
   .card{display:block;text-decoration:none;color:inherit;background:var(--panel);border:1px solid var(--border-soft);border-radius:10px;padding:12px 13px;transition:.13s}
@@ -106,9 +106,30 @@
   body.light .skel{background:linear-gradient(90deg,#eef0f3,#e2e6ed,#eef0f3);background-size:200% 100%}
   body.light .col-h{background:linear-gradient(180deg,#fff,rgba(255,255,255,0))}
 
-  .tabs{display:none;gap:6px;padding:8px 10px;background:var(--panel);border-bottom:1px solid var(--border);overflow-x:auto}
+  .tabs{display:flex;gap:6px;padding:8px 10px;background:var(--panel);border-bottom:1px solid var(--border);overflow-x:auto}
   .tabs button{flex:1;white-space:nowrap;min-width:74px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--panel-2);color:var(--muted);font-size:13px;cursor:pointer;transition:.13s}
   .tabs button.active{background:var(--accent-soft);border-color:rgba(68,147,248,.5);color:var(--accent);font-weight:600}
+  .tabs button.brief-tab{border-color:rgba(234,179,8,.3);color:#fbbf24}
+  .tabs button.brief-tab.active{background:rgba(234,179,8,.14);border-color:rgba(234,179,8,.55);color:#fbbf24;font-weight:600}
+
+  /* 热点分析面板 */
+  .brief-panel{display:none;flex-direction:column;height:100%;overflow:hidden}
+  .brief-panel.active{display:flex}
+  .brief-content{flex:1;overflow-y:auto;padding:14px 16px;max-height:calc(100vh - 200px);scrollbar-width:thin}
+  .brief-content::-webkit-scrollbar{width:8px}.brief-content::-webkit-scrollbar-thumb{background:#2a323d;border-radius:4px}
+  .brief-section{margin-bottom:18px}
+  .brief-section h3{font-size:14px;font-weight:700;margin:0 0 8px;color:var(--accent);display:flex;align-items:center;gap:8px}
+  .brief-section h3 .count{font-size:11px;font-weight:400;color:var(--muted);font-family:var(--mono)}
+  .brief-item{padding:8px 0;border-bottom:1px solid var(--border-soft)}
+  .brief-item:last-child{border-bottom:none}
+  .brief-item .bi-title{font-size:13px;font-weight:600;line-height:1.45;color:var(--text)}
+  .brief-item .bi-title a{color:inherit;text-decoration:none}
+  .brief-item .bi-title a:hover{color:var(--accent)}
+  .brief-item .bi-snip{font-size:12px;line-height:1.5;color:var(--muted);margin-top:4px}
+  .brief-item .bi-meta{font-size:10px;color:var(--muted);font-family:var(--mono);margin-top:3px}
+  .brief-summary{background:var(--panel-2);border:1px solid var(--border-soft);border-radius:10px;padding:14px 16px;margin-bottom:18px;line-height:1.7;font-size:13px;color:var(--text)}
+  .brief-summary h3{color:#fbbf24;font-size:14px;margin:0 0 8px;font-weight:700}
+  .brief-empty{padding:40px 20px;text-align:center;color:var(--muted);font-size:13px}
 
   .chips{display:flex;gap:7px;padding:9px 12px;background:var(--panel);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
   .chips::-webkit-scrollbar{height:0}
@@ -147,10 +168,6 @@
 
   @media (max-width:860px){
     body{overflow:auto;height:auto;min-height:100vh}
-    .tabs{display:flex}
-    .board{flex-direction:column;overflow:visible}
-    .col{border-right:none;border-bottom:1px solid var(--border);min-width:0;flex:none}
-    .col-body{max-height:none;overflow:visible}
     .btn span.lbl{display:none}
   }
 </style>
@@ -207,6 +224,7 @@
   <button data-tab="tech" data-i18n="cTech">技术栈</button>
   <button data-tab="jobs" data-i18n="cJobs">招聘岗位</button>
   <button data-tab="tele" data-i18n="cTele">通讯行业</button>
+  <button data-tab="brief" class="brief-tab" data-i18n="cBrief">🔥 热点分析</button>
 </div>
 
 <div class="board">
@@ -238,6 +256,10 @@
       <button class="tele-ctab" data-tele-ct="KH"><span class="flag">🇰🇭</span><span data-i18n="cCambodia">Cambodia</span><span class="cnt" id="tele-cnt-kh">0</span></button>
     </div>
     <div class="col-body" id="tele-body"></div>
+  </div>
+  <!-- 热点分析面板 -->
+  <div class="brief-panel" id="brief-panel">
+    <div class="brief-content" id="brief-content"></div>
   </div>
 </div>
 
@@ -274,7 +296,7 @@ const I18N={
    close:"关闭",loading:"加载中…",empty:"暂无结果，换个关键词或时间范围",error:"加载失败（可能被限流/跨域），显示上次缓存",
    updated:"更新于",pts:"赞",cmt:"评论",star:"星",likes:"喜欢",dl:"下载",view:"查看职位",refreshed:"已刷新",jobsHint:"越南 / 中国 AI 与通信岗位；每日快照优先，实时模式从 HN 招聘帖筛选",
    daily:"每日快照",liveLbl:"强制实时抓取（忽略 data.json）",liveHint:"关闭时优先读取本地每日抓取的 data.json；找不到才用浏览器直连。",
-   teleAll:"全部",cVietnam:"越南",cCambodia:"柬埔寨"},
+   teleAll:"全部",cVietnam:"越南",cCambodia:"柬埔寨",cBrief:"🔥 热点分析",briefSummary:"本板块热点汇总",briefTop:"热点排行",briefNoData:"暂无数据，请先刷新数据"},
  en:{rToday:"Today",rWeek:"This week",rMonth:"This month",rAll:"All",refresh:"Refresh",autoTip:"Auto refresh (5 min)",setTip:"Settings",
    cNews:"AI Frontier",cTech:"Tech Stack",cJobs:"Jobs",cTele:"Telecom",setTitle:"Settings",chipAll:"All",chipSocial:"Social",chipFav:"★ Saved",
    hot:"HOT",save:"Save",briefTip:"Export today's brief",themeTip:"Toggle theme",briefTitle:"Daily Intelligence Brief",briefDone:"Brief exported",
@@ -283,7 +305,7 @@ const I18N={
    close:"Close",loading:"Loading…",empty:"No results — try another keyword or range",error:"Failed (rate-limited/CORS); showing cached",
    updated:"Updated",pts:"pts",cmt:"comments",star:"stars",likes:"likes",dl:"downloads",view:"View job",refreshed:"Refreshed",jobsHint:"Vietnam / China AI and telecom roles; daily snapshot first, live mode filters HN hiring",
    daily:"Daily snapshot",liveLbl:"Force live fetch (ignore data.json)",liveHint:"When off, prefers the local daily data.json; falls back to browser fetch if absent.",
-   teleAll:"All",cVietnam:"Vietnam",cCambodia:"Cambodia"}
+   teleAll:"All",cVietnam:"Vietnam",cCambodia:"Cambodia",cBrief:"🔥 Hot Analysis",briefSummary:"Trending Summary",briefTop:"Top Items",briefNoData:"No data yet, please refresh first"}}
 };
 let lang=localStorage.getItem(LANG_KEY)||"en";
 const t=k=>(I18N[lang][k]!=null?I18N[lang][k]:k);
@@ -684,29 +706,122 @@ document.querySelectorAll("#chips .chip").forEach(c=>c.onclick=()=>{
 $("#kw").addEventListener("input",()=>{ favView=false; srcFilter=null; countryFilter=null; vendorFilter=null; const v=$("#kw").value.trim().toLowerCase(); let m=null;
   document.querySelectorAll("#chips .chip").forEach(c=>{ if(!c.dataset.src&&!c.dataset.view&&!c.dataset.country&&!c.dataset.vendor&&(c.dataset.kw||"").toLowerCase()===v) m=c; }); setActiveChip(m); });
 
-// ---------- 手机端主题标签 ----------
+// ---------- 板块切换（始终单栏） ----------
 let activeTab="news";
-const mq=window.matchMedia("(max-width:860px)");
 function applyTabs(){
   document.querySelectorAll(".col").forEach(c=>{
     const body=c.querySelector(".col-body");
     const key=body?body.id.replace("-body",""):"";
-    c.style.display = mq.matches ? (key===activeTab?"flex":"none") : "";
+    c.classList.toggle("active",key===activeTab);
   });
+  const bp=document.getElementById("brief-panel");
+  if(bp) bp.classList.toggle("active",activeTab==="brief");
+  if(activeTab==="brief") renderBrief();
+  window.scrollTo(0,0);
 }
 document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>{
   activeTab=b.dataset.tab;
   document.querySelectorAll("#tabs button").forEach(x=>x.classList.toggle("active",x===b));
-  applyTabs(); window.scrollTo(0,0);
+  applyTabs();
 });
-(mq.addEventListener?mq.addEventListener("change",applyTabs):window.addEventListener("resize",applyTabs));
 window.addEventListener("resize",applyTabs);
+
+// ---------- 热点分析 ----------
+function getAllItems(){
+  if(snapMode&&snapshot) return {
+    news:snapshot.news||[],tech:snapshot.tech||[],jobs:snapshot.jobs||[],tele:snapshot.tele||[]
+  };
+  return {
+    news:cache.news?.items||[],tech:cache.tech?.items||[],
+    jobs:cache.jobs?.items||[],tele:cache.tele?.items||[]
+  };
+}
+function scoreItem(it){
+  let s=0;
+  if(it.meta) it.meta.forEach(m=>{
+    if(m[0]==="pts"||m[0]==="star"||m[0]==="likes") s+=(m[1]||0);
+    if(m[0]==="cmt") s+=(m[1]||0)*0.5;
+  });
+  const ageHrs=(Date.now()-(it.time||0))/3600000;
+  if(ageHrs<24) s+=10; if(ageHrs<72) s+=5; if(ageHrs<168) s+=2;
+  return s;
+}
+function renderBrief(){
+  const el=document.getElementById("brief-content");
+  if(!el) return;
+  const data=getAllItems();
+  const sections=[
+    {key:"news",label:t("cNews"),icon:"🧠"},
+    {key:"tech",label:t("cTech"),icon:"💻"},
+    {key:"tele",label:t("cTele"),icon:"📡"},
+    {key:"jobs",label:t("cJobs"),icon:"💼"}
+  ];
+  let totalItems=0, allTop=[];
+  sections.forEach(s=>{ totalItems+=(data[s.key]||[]).length; });
+  if(!totalItems){ el.innerHTML=`<div class="brief-empty">${t("briefNoData")}</div>`; return; }
+
+  // 汇总分析
+  const kw=($("#kw").value.trim()||"").toLowerCase();
+  const since=sinceTs($("#range").value);
+  let allNews=(data.news||[]).slice();
+  if(kw) allNews=allNews.filter(it=>itemText(it).toLowerCase().includes(kw));
+  if(since) allNews=allNews=allNews.filter(it=>!it.time||it.time>=since*1000);
+  allNews.sort((a,b)=>scoreItem(b)-scoreItem(a));
+  const topNews=allNews.slice(0,15);
+
+  // 关键词提取
+  const wordFreq={};
+  allNews.forEach(it=>{
+    const txt=(it.title+" "+(it.snippet||"")).toLowerCase();
+    const words=txt.match(/[a-z]{3,}/g)||[];
+    const stop=new Set(["the","for","and","with","that","this","from","have","your","will","been","they","were","has","are","not","but","you","all","can","had","her","was","one","our","out","day","get","has","him","his","how","its","may","new","now","old","see","two","way","who","boy","did","let","say","she","too","use","via","was","yet","about","after","their","what","when","which","with","would","could","there","these","those","being","where","into","over","more","such","than","them","also","just","like","made","make","many","much","some","time","very","well","were","what","while","will","year","years","most","only","back","even","here","know","take","than","then","them","they","this","very","want","went","were","what","when","with","your","from","have","they","were","which","their","would","there","could","other","which","than","then","them","these","those","their","would","there","could","other","should","about","after","being","where","into","over","more","such","than","them","also","just","like","made","make","many","much","some","time","very","well","were","what","while","will","year","years","most","only","back","even","here","know","take","than","then","them","they","this","very","want","went","were","what","when","with","your","from","have","they","were","which","their","would","there","could","other"]);
+    words.forEach(w=>{ if(!stop.has(w)&&w.length>=4){ wordFreq[w]=(wordFreq[w]||0)+1; } });
+  });
+  const hotWords=Object.entries(wordFreq).sort((a,b)=>b[1]-a[1]).slice(0,12);
+
+  let html="";
+  // 热点汇总
+  html+=`<div class="brief-summary"><h3>📊 ${t("briefSummary")}</h3>`;
+  const date=new Date().toLocaleDateString(lang=="zh"?"zh-CN":"en-US");
+  html+=`<p><b>${date}</b> — `;
+  html+=`${(data.news||[]).length} ${t("cNews")} · ${(data.tech||[]).length} ${t("cTech")} · ${(data.tele||[]).length} ${t("cTele")} · ${(data.jobs||[]).length} ${t("cJobs")}`;
+  html+=`</p>`;
+  if(hotWords.length){
+    html+=`<p style="margin-top:8px;font-size:12px;color:var(--muted);">🔥 ${lang=="zh"?"高频关键词":"Trending keywords"}: `;
+    html+=hotWords.map(([w,n])=>`<span style="display:inline-block;padding:2px 8px;margin:2px;border-radius:8px;background:rgba(68,147,248,.12);color:var(--accent);font-weight:600;">${esc(w)} <small style="opacity:.6">${n}</small></span>`).join("");
+    html+=`</p>`;
+  }
+  html+=`</div>`;
+
+  // 各板块 Top 5
+  sections.forEach(s=>{
+    let items=(data[s.key]||[]).slice();
+    if(kw) items=items.filter(it=>itemText(it).toLowerCase().includes(kw));
+    if(since) items=items.filter(it=>!it.time||it.time>=since*1000);
+    items.sort((a,b)=>scoreItem(b)-scoreItem(a));
+    const top=items.slice(0,8);
+    if(!top.length) return;
+    html+=`<div class="brief-section"><h3>${s.icon} ${s.label} <span class="count">(${items.length} ${lang=="zh"?"条":"items"}, ${lang=="zh"?"显示前":"showing top"} ${top.length})</span></h3>`;
+    top.forEach((it,idx)=>{
+      const score=scoreItem(it);
+      html+=`<div class="brief-item">`;
+      html+=`<div class="bi-title">${idx+1}. <a href="${esc(it.url)}" target="_blank" rel="noopener">${hl(it.title)}</a></div>`;
+      if(it.snippet) html+=`<div class="bi-snip">${hl(it.snippet.slice(0,120))}</div>`;
+      html+=`<div class="bi-meta">${srcLabel(it.src)} · ${timeAgo(it.time||Date.now())} · ${lang=="zh"?"热度":"score"}: ${score.toFixed(0)}</div>`;
+      html+=`</div>`;
+    });
+    html+=`</div>`;
+  });
+  el.innerHTML=html;
+}
 
 // ---------- 启动 ----------
 function boot(){
   applyLang(); applyTheme(); setAuto(cfg.auto!==false);
   // 先渲染缓存（离线/秒开），再联网刷新
   Object.keys(COLS).forEach(c=>{ if(cache[c]?.items){ renderCards(c,cache[c].items); setMeta(c,cache[c].items.length,cache[c].ts,true); } });
+  // 默认选中 news tab
+  document.querySelector('#tabs button[data-tab="news"]')?.classList.add("active");
   applyTabs();
   refreshAll();
 }
