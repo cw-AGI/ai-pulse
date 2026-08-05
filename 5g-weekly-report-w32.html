@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>5G Wireless Project — Weekly Report | W32 2026</title>
+<style>
+  :root{
+    --bg:#f4f6f9; --card:#fff; --border:#e2e6ec; --border-soft:#eef1f5;
+    --text:#1a2640; --muted:#6a7585; --accent:#1e5fa8; --accent-light:#e8f1fb;
+    --green:#1a9e6c; --green-bg:#e8f7f0; --amber:#d4920f; --amber-bg:#fdf5e6;
+    --red:#d44040; --red-bg:#fdeaea; --radius:10px;
+    --sans:'Segoe UI','Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    --mono:'SF Mono',ui-monospace,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1100px;margin:0 auto;padding:28px 20px 60px}
+
+  /* Header */
+  .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+  .header-left{display:flex;align-items:center;gap:14px}
+  .logo{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#3a8eef);display:grid;place-items:center;color:#fff;font-weight:800;font-size:18px;letter-spacing:-.5px;box-shadow:0 4px 14px rgba(30,95,168,.25)}
+  .header h1{font-size:20px;font-weight:700;letter-spacing:-.2px}
+  .header h1 small{display:block;font-size:12px;font-weight:400;color:var(--muted);margin-top:2px}
+  .header-right{display:flex;gap:10px;align-items:center}
+  .pill{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;letter-spacing:.3px}
+  .pill.week{background:var(--accent);color:#fff}
+  .pill.status{background:var(--green-bg);color:var(--green);border:1px solid rgba(26,158,108,.2)}
+  .pill-date{font-size:12px;color:var(--muted);font-family:var(--mono)}
+
+  /* KPI Cards */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+  .kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;position:relative;overflow:hidden}
+  .kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}
+  .kpi.green::before{background:var(--green)} .kpi.amber::before{background:var(--amber)} .kpi.red::before{background:var(--red)}
+  .kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;font-weight:600;margin-bottom:8px}
+  .kpi-val{font-size:28px;font-weight:700;letter-spacing:-.5px}
+  .kpi-val small{font-size:13px;font-weight:400;color:var(--muted);margin-left:4px}
+  .kpi-trend{font-size:11px;margin-top:6px;font-family:var(--mono);font-weight:600}
+  .kpi-trend.up{color:var(--green)} .kpi-trend.down{color:var(--red)} .kpi-trend.flat{color:var(--muted)}
+
+  /* Section */
+  .section{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:20px;overflow:hidden}
+  .section-h{padding:14px 20px;border-bottom:1px solid var(--border-soft);display:flex;align-items:center;gap:8px;background:var(--card)}
+  .section-h h2{font-size:14px;font-weight:700;letter-spacing:-.1px}
+  .section-h .badge{margin-left:auto;font-size:10px;font-weight:600;padding:3px 10px;border-radius:12px;background:var(--accent-light);color:var(--accent);letter-spacing:.4px}
+  .section-body{padding:18px 20px}
+
+  /* Summary */
+  .summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .summary-item{display:flex;gap:12px;align-items:flex-start}
+  .summary-icon{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;flex:none;font-size:14px}
+  .summary-icon.ok{background:var(--green-bg);color:var(--green)}
+  .summary-icon.warn{background:var(--amber-bg);color:var(--amber)}
+  .summary-icon.risk{background:var(--red-bg);color:var(--red)}
+  .summary-icon.info{background:var(--accent-light);color:var(--accent)}
+  .summary-text b{font-size:13px;display:block;margin-bottom:2px}
+  .summary-text p{font-size:12px;color:var(--muted);line-height:1.55}
+
+  /* Fishbone */
+  .fishbone-wrap{overflow-x:auto;padding:10px 0}
+  .fishbone-wrap svg{display:block;margin:0 auto;min-width:900px}
+  .fb-label{font-size:11px;font-weight:600;fill:var(--text)}
+  .fb-cat{font-size:12px;font-weight:700;fill:#fff}
+  .fb-spine{stroke:var(--accent);stroke-width:3;fill:none}
+  .fb-bone{stroke:var(--border);stroke-width:1.5;fill:none}
+  .fb-bone-main{stroke:var(--text);stroke-width:2;fill:none}
+  .fb-box{fill:var(--accent);rx:6}
+  .fb-box-green{fill:var(--green)}
+  .fb-box-amber{fill:var(--amber)}
+  .fb-box-red{fill:var(--red)}
+  .fb-effect{fill:var(--accent-light);stroke:var(--accent);stroke-width:2}
+
+  /* Milestone table */
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th{text-align:left;padding:8px 12px;border-bottom:2px solid var(--border);font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600}
+  td{padding:10px 12px;border-bottom:1px solid var(--border-soft);vertical-align:middle}
+  tr:hover td{background:var(--border-soft)}
+  .status-dot{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:11px}
+  .status-dot::before{content:"";width:8px;height:8px;border-radius:50%}
+  .status-dot.done::before{background:var(--green)}
+  .status-dot.progress::before{background:var(--amber)}
+  .status-dot.pending::before{background:var(--muted);opacity:.4}
+  .status-dot.atrisk::before{background:var(--red)}
+  .progress-bar{width:80px;height:6px;border-radius:3px;background:var(--border-soft);overflow:hidden;display:inline-block;vertical-align:middle;margin-right:8px}
+  .progress-fill{height:100%;border-radius:3px;background:var(--accent)}
+  .progress-fill.green{background:var(--green)} .progress-fill.amber{background:var(--amber)} .progress-fill.red{background:var(--red)}
+
+  /* Risk list */
+  .risk-row{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border-soft)}
+  .risk-row:last-child{border-bottom:none}
+  .risk-level{width:50px;flex:none;text-align:center}
+  .risk-level span{font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;letter-spacing:.3px}
+  .risk-level.high span{background:var(--red-bg);color:var(--red)}
+  .risk-level.med span{background:var(--amber-bg);color:var(--amber)}
+  .risk-level.low span{background:var(--green-bg);color:var(--green)}
+  .risk-content b{font-size:13px}
+  .risk-content p{font-size:12px;color:var(--muted);margin-top:3px}
+  .risk-owner{font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:4px}
+
+  /* Next week */
+  .nextweek{list-style:none;display:flex;flex-direction:column;gap:10px}
+  .nextweek li{display:flex;gap:10px;align-items:flex-start;font-size:13px;padding:8px 0;border-bottom:1px solid var(--border-soft)}
+  .nextweek li:last-child{border-bottom:none}
+  .nextweek .num{width:22px;height:22px;border-radius:6px;background:var(--accent-light);color:var(--accent);font-size:11px;font-weight:700;display:grid;place-items:center;flex:none}
+
+  /* Footer */
+  .footer{margin-top:30px;padding-top:20px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted);flex-wrap:wrap;gap:8px}
+  .footer .team{display:flex;gap:16px;flex-wrap:wrap}
+  .footer .team span{display:flex;align-items:center;gap:5px}
+  .footer .team span::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent)}
+
+  @media (max-width:760px){
+    .kpis{grid-template-columns:repeat(2,1fr)}
+    .summary-grid{grid-template-columns:1fr}
+  }
+  @media print{
+    body{background:#fff} .section{break-inside:avoid} .fishbone-wrap{break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-left">
+      <div class="logo">5G</div>
+      <h1>5G Wireless Network Rollout — Weekly Report
+        <small>Project: VN 5G SA Core & RAN Expansion · Phase 2</small>
+      </h1>
+    </div>
+    <div class="header-right">
+      <span class="pill week">W32 · 2026</span>
+      <span class="pill status">On Track</span>
+      <span class="pill-date">Jul 28 – Aug 3, 2026</span>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpis">
+    <div class="kpi green">
+      <div class="kpi-label">Sites Deployed</div>
+      <div class="kpi-val">1,847<small>/ 3,200</small></div>
+      <div class="kpi-trend up">▲ +62 this week</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Overall Progress</div>
+      <div class="kpi-val">57.7<small>%</small></div>
+      <div class="kpi-trend up">▲ +3.2% WoW</div>
+    </div>
+    <div class="kpi amber">
+      <div class="kpi-label">Open Issues</div>
+      <div class="kpi-val">14<small>items</small></div>
+      <div class="kpi-trend down">▼ -3 vs last week</div>
+    </div>
+    <div class="kpi green">
+      <div class="kpi-label">5G Subscribers</div>
+      <div class="kpi-val">4.2<small>M</small></div>
+      <div class="kpi-trend up">▲ +310K this week</div>
+    </div>
+  </div>
+
+  <!-- EXECUTIVE SUMMARY -->
+  <div class="section">
+    <div class="section-h"><h2>Executive Summary</h2><span class="badge">PM Review</span></div>
+    <div class="section-body">
+      <div class="summary-grid">
+        <div class="summary-item">
+          <div class="summary-icon ok">✓</div>
+          <div class="summary-text"><b>RAN deployment ahead of schedule</b><p>62 new 5G base stations activated in Week 32, exceeding the weekly target of 50. Cumulative coverage reaches 57.7% of planned sites, with strong progress in Hanoi and HCMC metro areas.</p></div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-icon warn">!</div>
+          <div class="summary-text"><b>Core network integration delay</b><p>SA core upgrade encountered signaling interoperability issues with legacy EPC nodes. Vendor patch expected by Aug 7. Impact limited to 3 metro clusters; fallback to NSA mode active.</p></div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-icon info">i</div>
+          <div class="summary-text"><b>Spectrum refarming on track</b><p>2.6 GHz band refarming completed for 78% of target sites. Co-existence testing with remaining 4G LTE carriers shows no interference. Full migration target: Aug 15.</p></div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-icon risk">⚠</div>
+          <div class="summary-text"><b>Supply chain risk — RRU units</b><p>Lead time for Huawei 64T64R RRUs increased from 4 to 7 weeks due to export controls. Contingency: redeploy spare units from Phase 1 inventory and accelerate Nokia alternate sourcing.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FISHBONE DIAGRAM -->
+  <div class="section">
+    <div class="section-h"><h2>Progress Fishbone — Key Workstreams</h2><span class="badge">Ishikawa</span></div>
+    <div class="section-body">
+      <div class="fishbone-wrap">
+<svg width="960" height="420" viewBox="0 0 960 420" xmlns="http://www.w3.org/2000/svg">
+  <!-- Spine -->
+  <line class="fb-spine" x1="30" y1="210" x2="780" y2="210"/>
+  <!-- Effect box -->
+  <rect class="fb-effect" x="780" y="180" width="150" height="60" rx="8"/>
+  <text x="855" y="205" text-anchor="middle" class="fb-label" style="font-weight:700;font-size:13px">5G Phase 2</text>
+  <text x="855" y="223" text-anchor="middle" class="fb-label" style="font-size:11px">57.7% Complete</text>
+
+  <!-- ===== TOP BRANCHES (above spine) ===== -->
+
+  <!-- Branch 1: RAN -->
+  <line class="fb-bone-main" x1="120" y1="210" x2="180" y2="80"/>
+  <rect class="fb-box-green" x="120" y="55" width="120" height="26" rx="6"/>
+  <text x="180" y="72" text-anchor="middle" class="fb-cat">RAN · 68%</text>
+  <line class="fb-bone" x1="135" y1="113" x2="175" y2="113"/>
+  <text x="138" y="108" class="fb-label">1,847 sites live</text>
+  <line class="fb-bone" x1="155" y1="143" x2="195" y2="143"/>
+  <text x="158" y="138" class="fb-label">62 new this week</text>
+
+  <!-- Branch 2: Core Network -->
+  <line class="fb-bone-main" x1="280" y1="210" x2="340" y2="80"/>
+  <rect class="fb-box-amber" x="280" y="55" width="130" height="26" rx="6"/>
+  <text x="345" y="72" text-anchor="middle" class="fb-cat">Core · 45%</text>
+  <line class="fb-bone" x1="295" y1="113" x2="340" y2="113"/>
+  <text x="298" y="108" class="fb-label">SA interop issue</text>
+  <line class="fb-bone" x1="315" y1="143" x2="360" y2="143"/>
+  <text x="318" y="138" class="fb-label">Patch ETA Aug 7</text>
+
+  <!-- Branch 3: Spectrum -->
+  <line class="fb-bone-main" x1="440" y1="210" x2="500" y2="80"/>
+  <rect class="fb-box-green" x="435" y="55" width="130" height="26" rx="6"/>
+  <text x="500" y="72" text-anchor="middle" class="fb-cat">Spectrum · 78%</text>
+  <line class="fb-bone" x1="455" y1="113" x2="500" y2="113"/>
+  <text x="458" y="108" class="fb-label">2.6GHz refarm 78%</text>
+  <line class="fb-bone" x1="475" y1="143" x2="520" y2="143"/>
+  <text x="478" y="138" class="fb-label">No interference found</text>
+
+  <!-- Branch 4: Transport -->
+  <line class="fb-bone-main" x1="600" y1="210" x2="660" y2="80"/>
+  <rect class="fb-box-green" x="595" y="55" width="135" height="26" rx="6"/>
+  <text x="662" y="72" text-anchor="middle" class="fb-cat">Transport · 72%</text>
+  <line class="fb-bone" x1="615" y1="113" x2="660" y2="113"/>
+  <text x="618" y="108" class="fb-label">Fiber backhaul 72%</text>
+  <line class="fb-bone" x1="635" y1="143" x2="680" y2="143"/>
+  <text x="638" y="138" class="fb-label">2 sites delayed</text>
+
+  <!-- ===== BOTTOM BRANCHES (below spine) ===== -->
+
+  <!-- Branch 5: Supply Chain -->
+  <line class="fb-bone-main" x1="120" y1="210" x2="180" y2="340"/>
+  <rect class="fb-box-red" x="110" y="340" width="140" height="26" rx="6"/>
+  <text x="180" y="357" text-anchor="middle" class="fb-cat">Supply · At Risk</text>
+  <line class="fb-bone" x1="135" y1="277" x2="175" y2="277"/>
+  <text x="138" y="272" class="fb-label">RRU lead time 7wk</text>
+  <line class="fb-bone" x1="155" y1="300" x2="200" y2="300"/>
+  <text x="158" y="295" class="fb-label">Export controls</text>
+
+  <!-- Branch 6: Testing -->
+  <line class="fb-bone-main" x1="280" y1="210" x2="340" y2="340"/>
+  <rect class="fb-box-green" x="275" y="340" width="135" height="26" rx="6"/>
+  <text x="342" y="357" text-anchor="middle" class="fb-cat">QA · 82%</text>
+  <line class="fb-bone" x1="295" y1="277" x2="340" y2="277"/>
+  <text x="298" y="272" class="fb-label">4,200 tests passed</text>
+  <line class="fb-bone" x1="315" y1="300" x2="360" y2="300"/>
+  <text x="318" y="295" class="fb-label">7 failures (fixed)</text>
+
+  <!-- Branch 7: Integration -->
+  <line class="fb-bone-main" x1="440" y1="210" x2="500" y2="340"/>
+  <rect class="fb-box-amber" x="435" y="340" width="135" height="26" rx="6"/>
+  <text x="502" y="357" text-anchor="middle" class="fb-cat">Integration · 54%</text>
+  <line class="fb-bone" x1="455" y1="277" x2="500" y2="277"/>
+  <text x="458" y="272" class="fb-label">3 metro clusters</text>
+  <line class="fb-bone" x1="475" y1="300" x2="520" y2="300"/>
+  <text x="478" y="295" class="fb-label">NSA fallback active</text>
+
+  <!-- Branch 8: Field Ops -->
+  <line class="fb-bone-main" x1="600" y1="210" x2="660" y2="340"/>
+  <rect class="fb-box-green" x="595" y="340" width="140" height="26" rx="6"/>
+  <text x="665" y="357" text-anchor="middle" class="fb-cat">Field Ops · 65%</text>
+  <line class="fb-bone" x1="615" y1="277" x2="660" y2="277"/>
+  <text x="618" y="272" class="fb-label">12 crews active</text>
+  <line class="fb-bone" x1="635" y1="300" x2="680" y2="300"/>
+  <text x="638" y="295" class="fb-label">Weather: 2 delays</text>
+</svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- MILESTONES -->
+  <div class="section">
+    <div class="section-h"><h2>Milestone Tracker</h2><span class="badge">8 Active</span></div>
+    <div class="section-body" style="padding:0">
+      <table>
+        <thead>
+          <tr><th>Milestone</th><th>Owner</th><th>Due</th><th>Progress</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>RAN Site Deployment — Batch 4</b></td><td>ZTE / Huawei</td><td>Aug 15</td>
+            <td><span class="progress-bar"><span class="progress-fill green" style="width:68%"></span></span>68%</td>
+            <td><span class="status-dot done">On Track</span></td>
+          </tr>
+          <tr>
+            <td><b>SA Core Network Upgrade</b></td><td>Ericsson</td><td>Aug 7</td>
+            <td><span class="progress-bar"><span class="progress-fill amber" style="width:45%"></span></span>45%</td>
+            <td><span class="status-dot progress">In Progress</span></td>
+          </tr>
+          <tr>
+            <td><b>2.6 GHz Spectrum Refarming</b></td><td>Spectrum Team</td><td>Aug 15</td>
+            <td><span class="progress-bar"><span class="progress-fill green" style="width:78%"></span></span>78%</td>
+            <td><span class="status-dot done">On Track</span></td>
+          </tr>
+          <tr>
+            <td><b>Fiber Backhaul — Phase 2</b></td><td>VNPT Transport</td><td>Sep 1</td>
+            <td><span class="progress-bar"><span class="progress-fill green" style="width:72%"></span></span>72%</td>
+            <td><span class="status-dot done">On Track</span></td>
+          </tr>
+          <tr>
+            <td><b>Inter-vendor Interop Testing</b></td><td>QA Team</td><td>Aug 10</td>
+            <td><span class="progress-bar"><span class="progress-fill green" style="width:82%"></span></span>82%</td>
+            <td><span class="status-dot done">On Track</span></td>
+          </tr>
+          <tr>
+            <td><b>RRU Supply — Batch 5</b></td><td>Procurement</td><td>Sep 10</td>
+            <td><span class="progress-bar"><span class="progress-fill red" style="width:30%"></span></span>30%</td>
+            <td><span class="status-dot atrisk">At Risk</span></td>
+          </tr>
+          <tr>
+            <td><b>UE Compatibility Testing</b></td><td>Device Lab</td><td>Aug 20</td>
+            <td><span class="progress-bar"><span class="progress-fill" style="width:54%"></span></span>54%</td>
+            <td><span class="status-dot progress">In Progress</span></td>
+          </tr>
+          <tr>
+            <td><b>Field Acceptance — Northern Region</b></td><td>Field Ops</td><td>Sep 5</td>
+            <td><span class="progress-bar"><span class="progress-fill amber" style="width:65%"></span></span>65%</td>
+            <td><span class="status-dot progress">In Progress</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- RISKS -->
+  <div class="section">
+    <div class="section-h"><h2>Risks & Issues</h2><span class="badge">5 Active</span></div>
+    <div class="section-body">
+      <div class="risk-row">
+        <div class="risk-level high"><span>HIGH</span></div>
+        <div class="risk-content">
+          <b>RRU supply chain disruption — Huawei 64T64R lead time extended to 7 weeks</b>
+          <p>Mitigation: Redeploy 120 spare units from Phase 1 inventory; accelerate Nokia alternate sourcing for 80 sites. Revised ETA: Sep 10 (was Aug 25).</p>
+          <div class="risk-owner">Owner: Procurement Lead · Updated: Aug 3</div>
+        </div>
+      </div>
+      <div class="risk-row">
+        <div class="risk-level high"><span>HIGH</span></div>
+        <div class="risk-content">
+          <b>SA core interoperability — signaling mismatch with legacy EPC nodes</b>
+          <p>Mitigation: Vendor patch from Ericsson expected Aug 7. NSA fallback active for 3 metro clusters. No subscriber impact. Testing window reserved Aug 7–9.</p>
+          <div class="risk-owner">Owner: Core Network Lead · Updated: Aug 2</div>
+        </div>
+      </div>
+      <div class="risk-row">
+        <div class="risk-level med"><span>MED</span></div>
+        <div class="risk-content">
+          <b>Weather delays — monsoon season impacting field ops in Central Region</b>
+          <p>2 site installations delayed by 3 days. Mitigation: Reschedule to Aug 5–6 window; additional crew deployed to recover schedule.</p>
+          <div class="risk-owner">Owner: Field Ops Lead · Updated: Aug 1</div>
+        </div>
+      </div>
+      <div class="risk-row">
+        <div class="risk-level med"><span>MED</span></div>
+        <div class="risk-content">
+          <b>UE compatibility — 3 handset models fail VoNR handoff testing</b>
+          <p>Issue isolated to MediaTek baseband firmware. Vendor fix expected Aug 12. Affected models flagged in device database; VoLTE fallback configured.</p>
+          <div class="risk-owner">Owner: Device Lab Lead · Updated: Aug 3</div>
+        </div>
+      </div>
+      <div class="risk-row">
+        <div class="risk-level low"><span>LOW</span></div>
+        <div class="risk-content">
+          <b>Spectrum coordination — adjacent band interference in 2 border zones</b>
+          <p>Coordination with regulator initiated. Temporary power reduction applied to 6 sites. Permanent filter upgrade scheduled for Aug 20.</p>
+          <div class="risk-owner">Owner: RF Engineering · Updated: Jul 30</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NEXT WEEK -->
+  <div class="section">
+    <div class="section-h"><h2>Next Week Plan — W33</h2><span class="badge">Aug 4 – Aug 10</span></div>
+    <div class="section-body">
+      <ol class="nextweek">
+        <li><span class="num">1</span><div><b>Deploy Ericsson SA core patch</b> — Apply signaling fix to 3 metro clusters; run full interoperability test suite (Aug 7–9)</div></li>
+        <li><span class="num">2</span><div><b>Activate 50 new 5G sites</b> — Focus on HCMC suburban ring and Da Nang corridor; target cumulative 1,900 sites</div></li>
+        <li><span class="num">3</span><div><b>Complete 2.6 GHz refarming</b> — Final 22% of sites; coordinate night-window migrations to minimize subscriber impact</div></li>
+        <li><span class="num">4</span><div><b>RRU contingency execution</b> — Deploy 120 spare units to critical sites; sign Nokia alternate supply agreement for Batch 5</div></li>
+        <li><span class="num">5</span><div><b>VoNR handoff retest</b> — Retest 3 affected handset models with MediaTek firmware patch; update compatibility matrix</div></li>
+        <li><span class="num">6</span><div><b>Stakeholder review</b> — Weekly steering committee Aug 7; present Phase 2 status and Phase 3 readiness assessment</div></li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="team">
+      <span>PM: Nguyen Van A</span>
+      <span>Technical Lead: Tran Quoc B</span>
+      <span>Vendor Mgmt: Le Thi C</span>
+      <span>Field Ops: Pham D</span>
+    </div>
+    <div>Generated: Aug 4, 2026 · Confidential — Internal Use Only</div>
+  </div>
+
+</div>
+</body>
+</html>
